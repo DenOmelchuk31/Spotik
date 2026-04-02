@@ -29,14 +29,22 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
+win32 {
+    DESTDIR = $$OUT_PWD
+
+    dlls.path = $$DESTDIR
+    dlls.files += $$PWD/libs/taglib/bin/libtag-2.dll
+    dlls.files += $$PWD/libs/taglib/bin/zlib1.dll
+
+    INSTALLS += dlls
+}
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-win32 {
-    QMAKE_POST_LINK += copy /Y $$shell_path($$PWD/libs/taglib/bin/libtag-2.dll) $$shell_path($$OUT_PWD/)
-}
+QMAKE_POST_LINK += copy /Y $$shell_path($$PWD/libs/taglib/bin/libtag-2.dll) $$shell_path($$OUT_PWD/) && copy /Y $$shell_path($$PWD/libs/taglib/bin/zlib1.dll) $$shell_path($$OUT_PWD/)
 
 RESOURCES += \
     resources.qrc
