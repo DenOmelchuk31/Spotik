@@ -12,5 +12,6 @@
         <file>icons/library.png</file>
         <file>icons/search.png</file>
         <file>icons/add.png</file>
+        <file>icons/random.png</file>
     </qresource>
 </RCC>
