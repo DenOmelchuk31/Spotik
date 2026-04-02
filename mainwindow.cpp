@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QPixmap>
 #include <QResizeEvent>
+#include <QIcon>
 
 // TagLib
 #include <taglib/fileref.h>
@@ -21,6 +22,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
+            {
+                updatePlayButtonIcon();
+            });
+
+    ui->PlayBtn->setIconSize(QSize(40, 40));
+    updatePlayButtonIcon();
+
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.5f);
 
@@ -35,11 +44,28 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onDownloadBtnClicked);
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
+    connect(m_player, &QMediaPlayer::playbackStateChanged,
+            this, [this](QMediaPlayer::PlaybackState) {
+                updatePlayButtonIcon();
+            });
+
+    ui->PlayBtn->setIconSize(QSize(28, 28));
+    ui->PlayBtn->setText("");
+    updatePlayButtonIcon();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::updatePlayButtonIcon()
+{
+    if (m_player->playbackState() == QMediaPlayer::PlayingState) {
+        ui->PlayBtn->setIcon(QIcon(":/icons/pause.png"));
+    } else {
+        ui->PlayBtn->setIcon(QIcon(":/icons/play.png"));
+    }
 }
 
 void MainWindow::onDownloadBtnClicked()
@@ -55,6 +81,7 @@ void MainWindow::onDownloadBtnClicked()
 
     m_player->setSource(QUrl::fromLocalFile(path));
     m_player->play();
+    updatePlayButtonIcon();
     updateNowPlaying(path);
 }
 
@@ -65,6 +92,7 @@ void MainWindow::onPlayBtnClicked()
     } else {
         m_player->play();
     }
+    updatePlayButtonIcon();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)

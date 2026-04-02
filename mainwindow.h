@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
+    ~MainWindow();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -26,10 +26,13 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QMediaPlayer   *m_player;
-    QAudioOutput   *m_audio;
+
+        QMediaPlayer *m_player;
+    QAudioOutput *m_audio;
 
     void updateNowPlaying(const QString &filePath);
+    void updatePlayButtonIcon();
+
 };
 
-#endif
+#endif // MAINWINDOW_H

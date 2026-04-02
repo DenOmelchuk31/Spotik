@@ -74,6 +74,9 @@ CMakeLists.txt.user*
 # --------
 *.dll
 *.exe
+!libs/taglib/lib/tag.lib
+!libs/taglib/bin/libtag-2.dll
+!libs/taglib/bin/zlib1.dll
 
 # Directories with generated files
 .moc/
