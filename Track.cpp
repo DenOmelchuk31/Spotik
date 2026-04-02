@@ -86,3 +86,9 @@ void Track::toggleLike()
 {
     liked = !liked;
 }
+
+bool Track::isValid() const {
+    return !title.trimmed().isEmpty()
+    && !artist.trimmed().isEmpty()
+        && duration > 0;
+}
