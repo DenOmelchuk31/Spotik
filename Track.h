@@ -23,6 +23,7 @@ public:
     QString getFilePath() const;
     int getDuration() const;
     bool isLiked() const;
+    bool isValid() const;
 
     void setTitle(const QString& title);
     void setArtist(const QString& artist);
