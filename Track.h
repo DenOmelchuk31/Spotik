@@ -1,23 +1,37 @@
-#pragma once
-#include <string>
+#ifndef TRACK_H
+#define TRACK_H
 
-class Track {
+#include <QString>
+
+class Track
+{
 private:
-    std::string title;
-    std::string artist;
-    int duration; // seconds
-    std::string filePath;
-    bool isFavorite;
+    QString title;
+    QString artist;
+    QString album;
+    QString filePath;
+    int duration;
+    bool liked;
 
 public:
     Track();
-    Track(std::string t, std::string a, int d, std::string path);
+    Track(const QString& title, const QString& artist, const QString& album, const QString& filePath, int duration, bool liked = false);
 
-    std::string getTitle() const;
-    std::string getArtist() const;
+    QString getTitle() const;
+    QString getArtist() const;
+    QString getAlbum() const;
+    QString getFilePath() const;
     int getDuration() const;
-    std::string getFilePath() const;
-    bool getFavorite() const;
+    bool isLiked() const;
 
-    void setFavorite(bool value);
+    void setTitle(const QString& title);
+    void setArtist(const QString& artist);
+    void setAlbum(const QString& album);
+    void setFilePath(const QString& filePath);
+    void setDuration(int duration);
+    void setLiked(bool liked);
+
+    void toggleLike();
 };
+
+#endif // TRACK_H
