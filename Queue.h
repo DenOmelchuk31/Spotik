@@ -1,14 +1,24 @@
 #pragma once
 
-#include <vector>
+#include <QVector>
 #include "Track.h"
 
-class Queue {
+class Queue
+{
 private:
-    std::vector<Track> queue;
+    QVector<Track> tracks;
 
 public:
     Queue();
 
-    std::vector<Track>& getQueue();
+    void enqueue(const Track& track);
+    bool dequeue(Track& track);
+
+    Track peek() const;
+
+    QVector<Track> getTracks() const;
+
+    bool isEmpty() const;
+    int size() const;
+    void clear();
 };
