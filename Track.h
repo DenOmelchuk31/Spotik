@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TRACK_H
+#define TRACK_H
 
 #include <QString>
 
@@ -8,43 +9,29 @@ private:
     QString title;
     QString artist;
     QString album;
-    QString genre;
-    int duration;
     QString filePath;
-    bool isFavorite;
-    int playCount;
+    int duration;
+    bool liked;
 
 public:
     Track();
-    Track(const QString& title,
-          const QString& artist,
-          const QString& album,
-          const QString& genre,
-          int duration,
-          const QString& filePath,
-          bool isFavorite = false,
-          int playCount = 0);
+    Track(const QString& title, const QString& artist, const QString& album, const QString& filePath, int duration, bool liked = false);
 
     QString getTitle() const;
     QString getArtist() const;
     QString getAlbum() const;
-    QString getGenre() const;
-    int getDuration() const;
     QString getFilePath() const;
-    bool getFavorite() const;
-    int getPlayCount() const;
+    int getDuration() const;
+    bool isLiked() const;
 
     void setTitle(const QString& title);
     void setArtist(const QString& artist);
     void setAlbum(const QString& album);
-    void setGenre(const QString& genre);
-    void setDuration(int duration);
     void setFilePath(const QString& filePath);
-    void setFavorite(bool value);
-    void setPlayCount(int count);
+    void setDuration(int duration);
+    void setLiked(bool liked);
 
-    void incrementPlayCount();
-
-    bool isValid() const;
-    QString getFormattedDuration() const;
+    void toggleLike();
 };
+
+#endif // TRACK_H

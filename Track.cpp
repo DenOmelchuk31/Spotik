@@ -4,30 +4,19 @@ Track::Track()
     : title(""),
     artist(""),
     album(""),
-    genre(""),
-    duration(0),
     filePath(""),
-    isFavorite(false),
-    playCount(0)
+    duration(0),
+    liked(false)
 {
 }
 
-Track::Track(const QString& title,
-             const QString& artist,
-             const QString& album,
-             const QString& genre,
-             int duration,
-             const QString& filePath,
-             bool isFavorite,
-             int playCount)
+Track::Track(const QString& title, const QString& artist, const QString& album, const QString& filePath, int duration, bool liked)
     : title(title),
     artist(artist),
     album(album),
-    genre(genre),
-    duration(duration),
     filePath(filePath),
-    isFavorite(isFavorite),
-    playCount(playCount)
+    duration(duration),
+    liked(liked)
 {
 }
 
@@ -46,9 +35,9 @@ QString Track::getAlbum() const
     return album;
 }
 
-QString Track::getGenre() const
+QString Track::getFilePath() const
 {
-    return genre;
+    return filePath;
 }
 
 int Track::getDuration() const
@@ -56,19 +45,9 @@ int Track::getDuration() const
     return duration;
 }
 
-QString Track::getFilePath() const
+bool Track::isLiked() const
 {
-    return filePath;
-}
-
-bool Track::getFavorite() const
-{
-    return isFavorite;
-}
-
-int Track::getPlayCount() const
-{
-    return playCount;
+    return liked;
 }
 
 void Track::setTitle(const QString& title)
@@ -86,64 +65,24 @@ void Track::setAlbum(const QString& album)
     this->album = album;
 }
 
-void Track::setGenre(const QString& genre)
-{
-    this->genre = genre;
-}
-
-void Track::setDuration(int duration)
-{
-    if (duration >= 0)
-    {
-        this->duration = duration;
-    }
-}
-
 void Track::setFilePath(const QString& filePath)
 {
     this->filePath = filePath;
 }
 
-void Track::setFavorite(bool value)
+void Track::setDuration(int duration)
 {
-    isFavorite = value;
-}
-
-void Track::setPlayCount(int count)
-{
-    if (count >= 0)
-    {
-        playCount = count;
+    if (duration >= 0) {
+        this->duration = duration;
     }
 }
 
-void Track::incrementPlayCount()
+void Track::setLiked(bool liked)
 {
-    playCount++;
+    this->liked = liked;
 }
 
-bool Track::isValid() const
+void Track::toggleLike()
 {
-    return !title.trimmed().isEmpty()
-    && !artist.trimmed().isEmpty()
-        && duration > 0
-        && !filePath.trimmed().isEmpty();
-}
-
-QString Track::getFormattedDuration() const
-{
-    int minutes = duration / 60;
-    int seconds = duration % 60;
-
-    QString secondsText;
-    if (seconds < 10)
-    {
-        secondsText = "0" + QString::number(seconds);
-    }
-    else
-    {
-        secondsText = QString::number(seconds);
-    }
-
-    return QString::number(minutes) + ":" + secondsText;
+    liked = !liked;
 }
