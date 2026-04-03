@@ -22,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(32, 32));
+    ui->LikeBtn->setCheckable(false);
+
     connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
             {
                 updatePlayButtonIcon();
@@ -65,6 +69,20 @@ void MainWindow::updatePlayButtonIcon()
         ui->PlayBtn->setIcon(QIcon(":/icons/pause.png"));
     } else {
         ui->PlayBtn->setIcon(QIcon(":/icons/play.png"));
+    }
+}
+
+void MainWindow::on_LikeBtn_clicked()
+{
+    isLiked = !isLiked;
+
+    if (isLiked)
+    {
+        ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
+    }
+    else
+    {
+        ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     }
 }
 

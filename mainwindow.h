@@ -23,11 +23,13 @@ protected:
 private slots:
     void onDownloadBtnClicked();
     void onPlayBtnClicked();
+    void on_LikeBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
+    bool isLiked = false;
 
-        QMediaPlayer *m_player;
+    QMediaPlayer *m_player;
     QAudioOutput *m_audio;
 
     void updateNowPlaying(const QString &filePath);
