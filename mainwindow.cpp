@@ -20,7 +20,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_audio(new QAudioOutput(this))
 {
     ui->setupUi(this);
-
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.5f);
 
@@ -35,6 +34,34 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onDownloadBtnClicked);
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
+
+    ui->VolBtn->setIconSize(QSize(25, 25));
+    ui->volumeSlider->setValue(30);
+
+    connect(ui->volumeSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_audio->setVolume(value / 100.0f);
+        if (value == 0) {
+            ui->VolBtn->setIcon(QIcon(":/icons/mute.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        } else {
+            ui->VolBtn->setIcon(QIcon(":/icons/volume.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        }
+    });
+
+    connect(ui->VolBtn, &QPushButton::clicked, this, [this]() {
+        if (m_audio->volume() > 0) {
+            m_audio->setVolume(0);
+            ui->volumeSlider->setValue(0);
+            ui->VolBtn->setIcon(QIcon(":/icons/mute.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        } else {
+            m_audio->setVolume(0.3f);
+            ui->volumeSlider->setValue(30);
+            ui->VolBtn->setIcon(QIcon(":/icons/volume.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        }
+    });
 }
 
 MainWindow::~MainWindow()
@@ -72,7 +99,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     int w = centralWidget()->width();
     int h = centralWidget()->height();
-    int panelH = 91;
+    int panelH = 80;
     int leftW = 241;
 
     ui->leftwidget->setFixedSize(leftW, h);
