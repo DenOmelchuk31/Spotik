@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "MusicLibrary.h"
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QAudioOutput>
@@ -31,6 +32,8 @@ private:
 
     QMediaPlayer *m_player;
     QAudioOutput *m_audio;
+
+    Library library;
 
     void updateNowPlaying(const QString &filePath);
     void updatePlayButtonIcon();

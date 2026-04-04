@@ -1,4 +1,4 @@
-QT += widgets multimedia
+QT += widgets multimedia core
 
 INCLUDEPATH += $$PWD/libs/taglib/include
 LIBS += -L$$PWD/libs/taglib/lib -ltag
@@ -15,6 +15,7 @@ SOURCES += \
     Playlist.cpp \
     Queue.cpp \
     Track.cpp \
+    TrackStorage.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -24,6 +25,7 @@ HEADERS += \
     Playlist.h \
     Queue.h \
     Track.h \
+    TrackStorage.h \
     mainwindow.h
 
 FORMS += \
