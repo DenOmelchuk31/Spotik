@@ -25,7 +25,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-feature-track-storage
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
@@ -38,7 +37,6 @@ feature-track-storage
     ui->PlayBtn->setIconSize(QSize(40, 40));
     updatePlayButtonIcon();
 
-main
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.3f);
 
@@ -64,7 +62,6 @@ main
                 updatePlayButtonIcon();
             });
 
-feature-track-storage
     ui->PlayBtn->setIconSize(QSize(28, 28));
     ui->PlayBtn->setText("");
     updatePlayButtonIcon();
@@ -109,7 +106,6 @@ feature-track-storage
             this, &MainWindow::onDownloadBtnClicked);
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
-main
 }
 
 MainWindow::~MainWindow()

@@ -1,9 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-feature-track-storage
+// #include <feature-track-storage>
 
 #include "MusicLibrary.h"
-main
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QAudioOutput>
@@ -27,13 +26,8 @@ private:
     QMediaPlayer   *m_player;
     QAudioOutput   *m_audio;
     bool isLiked = false;
-feature-track-storage
-
-    QMediaPlayer *m_player;
-    QAudioOutput *m_audio;
 
     Library library;
-main
     void updateNowPlaying(const QString &filePath);
     void updatePlayButtonIcon();
 };

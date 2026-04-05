@@ -1,4 +1,5 @@
 QT += widgets multimedia core
+QT += core gui widgets
 
 INCLUDEPATH += $$PWD/libs/taglib/include
 LIBS += -L$$PWD/libs/taglib/lib -ltag
