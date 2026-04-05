@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+feature-track-storage
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
@@ -37,8 +38,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->PlayBtn->setIconSize(QSize(40, 40));
     updatePlayButtonIcon();
 
+main
     m_player->setAudioOutput(m_audio);
-    m_audio->setVolume(0.5f);
+    m_audio->setVolume(0.3f);
 
     // Дефолтні значення
     ui->trackNameLabel->setText("Немає треку");
@@ -47,15 +49,22 @@ MainWindow::MainWindow(QWidget *parent)
     ui->albumArt->setAlignment(Qt::AlignCenter);
     ui->albumArt->setFixedSize(60, 60);
 
-    connect(ui->downloadBtn, &QPushButton::clicked,
-            this, &MainWindow::onDownloadBtnClicked);
-    connect(ui->PlayBtn, &QPushButton::clicked,
-            this, &MainWindow::onPlayBtnClicked);
+    // Like кнопка
+    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(20, 20));
+    ui->LikeBtn->setCheckable(false);
+
+    // Play кнопка
+    ui->PlayBtn->setIconSize(QSize(20, 20));
+    ui->PlayBtn->setText("");
+    updatePlayButtonIcon();
+
     connect(m_player, &QMediaPlayer::playbackStateChanged,
             this, [this](QMediaPlayer::PlaybackState) {
                 updatePlayButtonIcon();
             });
 
+feature-track-storage
     ui->PlayBtn->setIconSize(QSize(28, 28));
     ui->PlayBtn->setText("");
     updatePlayButtonIcon();
@@ -67,6 +76,40 @@ MainWindow::MainWindow(QWidget *parent)
     for (const Track &t : savedTracks) {
         library.addTrack(t); // Це mainwindow.h
     }
+    // Volume
+    ui->VolBtn->setIconSize(QSize(25, 25));
+    ui->volumeSlider->setValue(30);
+
+    connect(ui->volumeSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_audio->setVolume(value / 100.0f);
+        if (value == 0) {
+            ui->VolBtn->setIcon(QIcon(":/icons/mute.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        } else {
+            ui->VolBtn->setIcon(QIcon(":/icons/volume.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        }
+    });
+
+    connect(ui->VolBtn, &QPushButton::clicked, this, [this]() {
+        if (m_audio->volume() > 0) {
+            m_audio->setVolume(0);
+            ui->volumeSlider->setValue(0);
+            ui->VolBtn->setIcon(QIcon(":/icons/mute.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        } else {
+            m_audio->setVolume(0.3f);
+            ui->volumeSlider->setValue(30);
+            ui->VolBtn->setIcon(QIcon(":/icons/volume.png"));
+            ui->VolBtn->setIconSize(QSize(25, 25));
+        }
+    });
+
+    connect(ui->downloadBtn, &QPushButton::clicked,
+            this, &MainWindow::onDownloadBtnClicked);
+    connect(ui->PlayBtn, &QPushButton::clicked,
+            this, &MainWindow::onPlayBtnClicked);
+main
 }
 
 MainWindow::~MainWindow()
@@ -81,20 +124,19 @@ void MainWindow::updatePlayButtonIcon()
     } else {
         ui->PlayBtn->setIcon(QIcon(":/icons/play.png"));
     }
+    ui->PlayBtn->setIconSize(QSize(20, 20));
 }
 
 void MainWindow::on_LikeBtn_clicked()
 {
     isLiked = !isLiked;
 
-    if (isLiked)
-    {
+    if (isLiked) {
         ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
-    }
-    else
-    {
+    } else {
         ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     }
+    ui->LikeBtn->setIconSize(QSize(20, 20));
 }
 
 void MainWindow::onDownloadBtnClicked()
@@ -154,7 +196,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     int w = centralWidget()->width();
     int h = centralWidget()->height();
-    int panelH = 91;
+    int panelH = 80;
     int leftW = 241;
 
     ui->leftwidget->setFixedSize(leftW, h);
@@ -164,7 +206,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
 void MainWindow::updateNowPlaying(const QString &filePath)
 {
-    // Читаємо метадані через TagLib
     TagLib::FileRef f(filePath.toStdWString().c_str());
 
     if (!f.isNull() && f.tag()) {
@@ -181,7 +222,6 @@ void MainWindow::updateNowPlaying(const QString &filePath)
         ui->artistLabel->setText("Невідомий");
     }
 
-    // Читаємо обкладинку (тільки MP3)
     TagLib::MPEG::File mp3(filePath.toStdWString().c_str());
     if (mp3.isValid() && mp3.ID3v2Tag()) {
         auto frames = mp3.ID3v2Tag()->frameListMap()["APIC"];
@@ -205,8 +245,5 @@ void MainWindow::updateNowPlaying(const QString &filePath)
         }
     }
 
-
-
-    // Якщо обкладинки немає — показуємо дефолтний текст
     ui->albumArt->setText("🎵");
 }

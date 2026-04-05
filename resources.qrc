@@ -13,5 +13,6 @@
         <file>icons/search.png</file>
         <file>icons/add.png</file>
         <file>icons/random.png</file>
+        <file>icons/mute.png</file>
     </qresource>
 </RCC>
