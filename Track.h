@@ -2,6 +2,7 @@
 #define TRACK_H
 
 #include <QString>
+#include <QJsonObject>
 
 class Track
 {
@@ -16,6 +17,9 @@ private:
 public:
     Track();
     Track(const QString& title, const QString& artist, const QString& album, const QString& filePath, int duration, bool liked = false);
+
+    QJsonObject toJson() const;
+    static Track fromJson(const QJsonObject& obj);
 
     QString getTitle() const;
     QString getArtist() const;

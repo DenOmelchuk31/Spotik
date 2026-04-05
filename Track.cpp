@@ -91,3 +91,25 @@ bool Track::isValid() const {
     && !artist.trimmed().isEmpty()
         && duration > 0;
 }
+
+QJsonObject Track::toJson() const {
+    QJsonObject obj;
+    obj["title"] = title;
+    obj["artist"] = artist;
+    obj["album"] = album;
+    obj["filePath"] = filePath;
+    obj["duration"] = duration;
+    obj["isLiked"] = liked;
+    return obj;
+}
+
+Track Track::fromJson(const QJsonObject& obj) {
+    return Track(
+        obj["title"].toString(),
+        obj["artist"].toString(),
+        obj["album"].toString(),
+        obj["filePath"].toString(),
+        obj["duration"].toInt(),
+        obj["isLiked"].toBool()
+        );
+}

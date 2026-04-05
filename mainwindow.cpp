@@ -1,4 +1,7 @@
 #include "mainwindow.h"
+#include "Track.h"
+#include "TrackStorage.h"
+#include "MusicLibrary.h"
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
@@ -22,6 +25,20 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+feature-track-storage
+    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(28, 28));
+    ui->LikeBtn->setCheckable(false);
+
+    connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
+            {
+                updatePlayButtonIcon();
+            });
+
+    ui->PlayBtn->setIconSize(QSize(40, 40));
+    updatePlayButtonIcon();
+
+main
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.3f);
 
@@ -47,6 +64,18 @@ MainWindow::MainWindow(QWidget *parent)
                 updatePlayButtonIcon();
             });
 
+feature-track-storage
+    ui->PlayBtn->setIconSize(QSize(28, 28));
+    ui->PlayBtn->setText("");
+    updatePlayButtonIcon();
+
+    // Завантажуємо всі збережені треки з файлу tracks.json
+    QVector<Track> savedTracks = TrackStorage::load();
+
+    // Тепер треба сказати бібліотеці (MusicLibrary), що ці треки існують
+    for (const Track &t : savedTracks) {
+        library.addTrack(t); // Це mainwindow.h
+    }
     // Volume
     ui->VolBtn->setIconSize(QSize(25, 25));
     ui->volumeSlider->setValue(30);
@@ -80,6 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onDownloadBtnClicked);
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
+main
 }
 
 MainWindow::~MainWindow()
@@ -124,6 +154,31 @@ void MainWindow::onDownloadBtnClicked()
     m_player->play();
     updatePlayButtonIcon();
     updateNowPlaying(path);
+
+    if (!path.isEmpty()) {
+        // 1. Читаємо теги з файлу
+        TagLib::FileRef f(path.toStdWString().c_str());
+
+        QString title = "Unknown Title";
+        QString artist = "Unknown Artist";
+        QString album = "Unknown Album";
+        int duration = 0;
+
+        if (!f.isNull() && f.tag()) {
+            TagLib::Tag *tag = f.tag();
+            title = QString::fromStdWString(tag->title().toWString());
+            artist = QString::fromStdWString(tag->artist().toWString());
+            album = QString::fromStdWString(tag->album().toWString());
+            duration = f.audioProperties() ? f.audioProperties()->length() : 0;
+        }
+
+        // 2. Створюємо об'єкт і додаємо в список
+        Track newTrack(title, artist, album, path, duration);
+        library.addTrack(newTrack);
+
+        // 3. САМЕ ЦЕЙ РЯДОК РОБИТЬ ЗАПИС У tracks.json
+        TrackStorage::save(library.getTracks());
+    }
 }
 
 void MainWindow::onPlayBtnClicked()
