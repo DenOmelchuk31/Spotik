@@ -6,10 +6,11 @@
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include "framelesswindow.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-class MainWindow : public QMainWindow
+class MainWindow : public FramelessWindow
 {
     Q_OBJECT
 public:
@@ -18,6 +19,7 @@ public:
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void changeEvent(QEvent *event) override;
 private slots:
     void on_randomBtn_clicked();
     void onPositionChanged(qint64 position);

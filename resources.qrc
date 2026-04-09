@@ -14,5 +14,10 @@
         <file>icons/add.png</file>
         <file>icons/random.png</file>
         <file>icons/mute.png</file>
+        <file>icons/music.png</file>
+        <file>icons/close.png</file>
+        <file>icons/minimize.png</file>
+        <file>icons/maximize.png</file>
+        <file>icons/window.png</file>
     </qresource>
 </RCC>

@@ -1,7 +1,4 @@
 #include "mainwindow.h"
-#include "Track.h"
-#include "TrackStorage.h"
-#include "MusicLibrary.h"
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
@@ -9,8 +6,11 @@
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QIcon>
+feature-windows
 #include <QMouseEvent>
 #include <QStyle>
+#include <QEvent>
+main
 
 // TagLib
 #include <taglib/fileref.h>
@@ -20,42 +20,49 @@
 #include <taglib/attachedpictureframe.h>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : FramelessWindow(parent)
     , ui(new Ui::MainWindow)
     , m_player(new QMediaPlayer(this))
     , m_audio(new QAudioOutput(this))
 {
     ui->setupUi(this);
 
+feature-windows
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
     ui->horizontalSlider->installEventFilter(this);
+    setWindowFlags(Qt::FramelessWindowHint);
+    setDragWidget(ui->upperwidget);
+ main
 
-    connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
-            {
-                updatePlayButtonIcon();
-            });
+    for (QWidget *child : findChildren<QWidget*>()) {
+        child->setMouseTracking(true);
+    }
+    setMinimumSize(400, 300);
 
-    ui->PlayBtn->setIconSize(QSize(40, 40));
-    updatePlayButtonIcon();
+    connect(ui->closeBtn, &QPushButton::clicked, this, &MainWindow::close);
+    connect(ui->minimizeBtn, &QPushButton::clicked, this, &MainWindow::showMinimized);
+    connect(ui->maximizeBtn, &QPushButton::clicked, this, [this]() {
+        if (isMaximized()) showNormal();
+        else showMaximized();
+    });
 
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.3f);
 
-    // Дефолтні значення
+    ui->HomeWidget->setAutoFillBackground(true);
+
     ui->trackNameLabel->setText("Немає треку");
     ui->artistLabel->setText("—");
     ui->albumArt->setText("🎵");
     ui->albumArt->setAlignment(Qt::AlignCenter);
     ui->albumArt->setFixedSize(60, 60);
 
-    // Like кнопка
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(20, 20));
     ui->LikeBtn->setCheckable(false);
 
-    // Play кнопка
     ui->PlayBtn->setIconSize(QSize(20, 20));
     ui->PlayBtn->setText("");
     updatePlayButtonIcon();
@@ -65,18 +72,6 @@ MainWindow::MainWindow(QWidget *parent)
                 updatePlayButtonIcon();
             });
 
-    ui->PlayBtn->setIconSize(QSize(28, 28));
-    ui->PlayBtn->setText("");
-    updatePlayButtonIcon();
-
-    // Завантажуємо всі збережені треки з файлу tracks.json
-    QVector<Track> savedTracks = TrackStorage::load();
-
-    // Тепер треба сказати бібліотеці (MusicLibrary), що ці треки існують
-    for (const Track &t : savedTracks) {
-        library.addTrack(t); // Це mainwindow.h
-    }
-    // Volume
     ui->VolBtn->setIconSize(QSize(25, 25));
     ui->volumeSlider->setValue(30);
 
@@ -133,6 +128,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::WindowStateChange) {
+        if (isMaximized()) {
+            ui->maximizeBtn->setIcon(QIcon(":/icons/restore.png"));
+        } else {
+            ui->maximizeBtn->setIcon(QIcon(":/icons/window.png"));
+        }
+        ui->maximizeBtn->setIconSize(QSize(16, 16));
+    }
+    QMainWindow::changeEvent(event);
+}
+
 void MainWindow::updatePlayButtonIcon()
 {
     if (m_player->playbackState() == QMediaPlayer::PlayingState) {
@@ -146,7 +154,6 @@ void MainWindow::updatePlayButtonIcon()
 void MainWindow::on_LikeBtn_clicked()
 {
     isLiked = !isLiked;
-
     if (isLiked) {
         ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
     } else {
@@ -158,11 +165,7 @@ void MainWindow::on_LikeBtn_clicked()
 void MainWindow::onDownloadBtnClicked()
 {
     QString path = QFileDialog::getOpenFileName(
-        this,
-        "Відкрити трек",
-        "",
-        "Аудіо (*.mp3 *.wav *.flac *.ogg)"
-        );
+        this, "Відкрити трек", "", "Аудіо (*.mp3 *.wav *.flac *.ogg)");
 
     if (path.isEmpty()) return;
 
@@ -170,31 +173,6 @@ void MainWindow::onDownloadBtnClicked()
     m_player->play();
     updatePlayButtonIcon();
     updateNowPlaying(path);
-
-    if (!path.isEmpty()) {
-        // 1. Читаємо теги з файлу
-        TagLib::FileRef f(path.toStdWString().c_str());
-
-        QString title = "Unknown Title";
-        QString artist = "Unknown Artist";
-        QString album = "Unknown Album";
-        int duration = 0;
-
-        if (!f.isNull() && f.tag()) {
-            TagLib::Tag *tag = f.tag();
-            title = QString::fromStdWString(tag->title().toWString());
-            artist = QString::fromStdWString(tag->artist().toWString());
-            album = QString::fromStdWString(tag->album().toWString());
-            duration = f.audioProperties() ? f.audioProperties()->length() : 0;
-        }
-
-        // 2. Створюємо об'єкт і додаємо в список
-        Track newTrack(title, artist, album, path, duration);
-        library.addTrack(newTrack);
-
-        // 3. САМЕ ЦЕЙ РЯДОК РОБИТЬ ЗАПИС У tracks.json
-        TrackStorage::save(library.getTracks());
-    }
 }
 
 void MainWindow::onPlayBtnClicked()
@@ -212,12 +190,21 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     int w = centralWidget()->width();
     int h = centralWidget()->height();
-    int panelH = 80;
-    int leftW = 241;
+    int leftW = w * 0.2;
+    int btnW = 45;
+    int panelH = h * 0.1;
+    int upperH = h * 0.1;
 
-    ui->leftwidget->setFixedSize(leftW, h);
-    ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
+    ui->upperwidget->setGeometry(0, 0, w, upperH);
+    ui->minimizeBtn->setGeometry(w - btnW * 3, 0, btnW, upperH);
+    ui->maximizeBtn->setGeometry(w - btnW * 2, 0, btnW, upperH);
+    ui->closeBtn->setGeometry(w - btnW, 0, btnW, upperH);
+
+    ui->LogoWidget->setGeometry(0, 0, leftW, upperH);
+    ui->leftwidget->setGeometry(0, upperH, leftW, h - upperH - panelH);
     ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH + 2);
+    ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
+    ui->HomeWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
 }
 
 void MainWindow::updateNowPlaying(const QString &filePath)
@@ -226,12 +213,9 @@ void MainWindow::updateNowPlaying(const QString &filePath)
 
     if (!f.isNull() && f.tag()) {
         TagLib::Tag *tag = f.tag();
-
         QString title  = QString::fromStdString(tag->title().to8Bit(true));
         QString artist = QString::fromStdString(tag->artist().to8Bit(true));
-
-        ui->trackNameLabel->setText(title.isEmpty()
-                                        ? QFileInfo(filePath).baseName() : title);
+        ui->trackNameLabel->setText(title.isEmpty() ? QFileInfo(filePath).baseName() : title);
         ui->artistLabel->setText(artist.isEmpty() ? "Невідомий" : artist);
     } else {
         ui->trackNameLabel->setText(QFileInfo(filePath).baseName());
@@ -242,20 +226,14 @@ void MainWindow::updateNowPlaying(const QString &filePath)
     if (mp3.isValid() && mp3.ID3v2Tag()) {
         auto frames = mp3.ID3v2Tag()->frameListMap()["APIC"];
         if (!frames.isEmpty()) {
-            auto *pic = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(
-                frames.front()
-                );
+            auto *pic = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frames.front());
             if (pic) {
                 QPixmap pixmap;
                 pixmap.loadFromData(
                     reinterpret_cast<const uchar*>(pic->picture().data()),
-                    pic->picture().size()
-                    );
+                    pic->picture().size());
                 ui->albumArt->setPixmap(
-                    pixmap.scaled(60, 60,
-                                  Qt::KeepAspectRatio,
-                                  Qt::SmoothTransformation)
-                    );
+                    pixmap.scaled(60, 60, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 return;
             }
         }
