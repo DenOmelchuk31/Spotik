@@ -104,8 +104,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->downloadBtn, &QPushButton::clicked,
             this, &MainWindow::onDownloadBtnClicked);
+
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
+
+    // Коли натиснули Home
+    connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
+        ui->pageManager->setCurrentIndex(0);
+    });
+
+    // Коли натиснули Library
+    connect(ui->LibraryBtn, &QPushButton::clicked, this, [this]() {
+        ui->pageManager->setCurrentIndex(1);
+    });
 }
 
 MainWindow::~MainWindow()
@@ -243,3 +254,4 @@ void MainWindow::updateNowPlaying(const QString &filePath)
 
     ui->albumArt->setText("🎵");
 }
+
