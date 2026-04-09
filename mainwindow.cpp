@@ -9,6 +9,8 @@
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QIcon>
+#include <QMouseEvent>
+#include <QStyle>
 
 // TagLib
 #include <taglib/fileref.h>
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
+    ui->horizontalSlider->installEventFilter(this);
 
     connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
             {
@@ -117,6 +120,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->LibraryBtn, &QPushButton::clicked, this, [this]() {
         ui->pageManager->setCurrentIndex(1);
     });
+
+    // Плеєр каже: "Я просунувся по треку", слайдер наздоганяє
+    connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::onPositionChanged);
+
+    // Плеєр каже: "Ця пісня довга", слайдер підлаштовує свій максимум
+    connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::onDurationChanged);
 }
 
 MainWindow::~MainWindow()
@@ -255,3 +264,63 @@ void MainWindow::updateNowPlaying(const QString &filePath)
     ui->albumArt->setText("🎵");
 }
 
+// Рухаємо повзунок слідом за музикою
+void MainWindow::onPositionChanged(qint64 position) {
+    if (!ui->horizontalSlider->isSliderDown()) {
+        ui->horizontalSlider->setValue(static_cast<int>(position));
+    }
+}
+
+// Налаштовуємо довжину слайдера під довжину пісні
+void MainWindow::onDurationChanged(qint64 duration) {
+    ui->horizontalSlider->setRange(0, static_cast<int>(duration));
+}
+
+// Перемотка: коли ти тягнеш повзунок мишкою
+void MainWindow::on_horizontalSlider_sliderMoved(int position) {
+    m_player->setPosition(static_cast<qint64>(position));
+}
+
+void MainWindow::on_randomBtn_clicked()
+{
+    // Скидаємо позицію треку на самий початок (0 мілісекунд)
+    m_player->setPosition(0);
+
+    // Якщо трек був на паузі, він почне грати з початку
+    if (m_player->playbackState() != QMediaPlayer::PlayingState) {
+        m_player->play();
+        updatePlayButtonIcon(); // Переконуємося, що на кнопці Play правильна іконка
+    }
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    // Перевіряємо, чи подія відбулася саме зі слайдером і чи це натискання мишки
+    if (obj == ui->horizontalSlider && event->type() == QEvent::MouseButtonPress) {
+
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+
+        // Перевіряємо, чи натиснута саме ліва кнопка миші
+        if (mouseEvent->button() == Qt::LeftButton) {
+
+            // Розраховуємо нове значення слайдера залежно від того, де на екрані був клік
+            int val = QStyle::sliderValueFromPosition(
+                ui->horizontalSlider->minimum(),
+                ui->horizontalSlider->maximum(),
+                mouseEvent->pos().x(),
+                ui->horizontalSlider->width()
+                );
+
+            // Встановлюємо повзунок візуально
+            ui->horizontalSlider->setValue(val);
+
+            // Перемотуємо плеєр на цю позицію (val у нас у мілісекундах)
+            m_player->setPosition(static_cast<qint64>(val));
+
+            return true; // Кажемо системі, що ми "з'їли" цю подію і далі її передавати не треба
+        }
+    }
+
+    // Для всіх інших подій і віджетів викликаємо стандартну поведінку
+    return QMainWindow::eventFilter(obj, event);
+}
