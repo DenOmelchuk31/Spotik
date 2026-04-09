@@ -6,11 +6,9 @@
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QIcon>
-feature-windows
 #include <QMouseEvent>
 #include <QStyle>
 #include <QEvent>
-main
 
 // TagLib
 #include <taglib/fileref.h>
@@ -26,15 +24,12 @@ MainWindow::MainWindow(QWidget *parent)
     , m_audio(new QAudioOutput(this))
 {
     ui->setupUi(this);
-
-feature-windows
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
     ui->horizontalSlider->installEventFilter(this);
     setWindowFlags(Qt::FramelessWindowHint);
     setDragWidget(ui->upperwidget);
- main
 
     for (QWidget *child : findChildren<QWidget*>()) {
         child->setMouseTracking(true);
@@ -132,7 +127,7 @@ void MainWindow::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::WindowStateChange) {
         if (isMaximized()) {
-            ui->maximizeBtn->setIcon(QIcon(":/icons/restore.png"));
+            ui->maximizeBtn->setIcon(QIcon(":/icons/maximize.png"));
         } else {
             ui->maximizeBtn->setIcon(QIcon(":/icons/window.png"));
         }

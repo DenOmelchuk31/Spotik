@@ -758,9 +758,9 @@ background-color: #FF4B5C;
    <widget class="QWidget" name="HomeWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>230</x>
       <y>80</y>
-      <width>871</width>
+      <width>881</width>
       <height>531</height>
      </rect>
     </property>
@@ -840,7 +840,6 @@ background-color: #FF4B5C;
      </property>
     </widget>
    </widget>
-feature-windows
    <widget class="QStackedWidget" name="pageManager">
     <property name="geometry">
      <rect>
@@ -877,14 +876,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </widget>
     </widget>
    </widget>
-   <zorder>HomeWidget</zorder>
+   <zorder>pageManager</zorder>
    <zorder>upperwidget</zorder>
-main
    <zorder>leftwidget</zorder>
    <zorder>playpanel</zorder>
    <zorder>nowPlayingWidget</zorder>
    <zorder>LogoWidget</zorder>
-   <zorder>pageManager</zorder>
+   <zorder>HomeWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
