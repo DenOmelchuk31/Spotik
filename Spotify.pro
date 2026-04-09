@@ -15,6 +15,7 @@ SOURCES += \
     Playlist.cpp \
     Queue.cpp \
     Track.cpp \
+    framelesswindow.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -24,6 +25,7 @@ HEADERS += \
     Playlist.h \
     Queue.h \
     Track.h \
+    framelesswindow.h \
     mainwindow.h
 
 FORMS += \
