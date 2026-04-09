@@ -268,15 +268,10 @@ void MainWindow::on_randomBtn_clicked()
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    // Перевіряємо, чи подія відбулася саме зі слайдером і чи це натискання мишки
     if (obj == ui->horizontalSlider && event->type() == QEvent::MouseButtonPress) {
-
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-
-        // Перевіряємо, чи натиснута саме ліва кнопка миші
         if (mouseEvent->button() == Qt::LeftButton) {
-
-            // Розраховуємо нове значення слайдера залежно від того, де на екрані був клік
+            // Вираховуємо нове значення
             int val = QStyle::sliderValueFromPosition(
                 ui->horizontalSlider->minimum(),
                 ui->horizontalSlider->maximum(),
@@ -284,16 +279,17 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 ui->horizontalSlider->width()
                 );
 
-            // Встановлюємо повзунок візуально
+            // 1. Ставимо значення візуально
             ui->horizontalSlider->setValue(val);
-
-            // Перемотуємо плеєр на цю позицію (val у нас у мілісекундах)
+            // 2. Перемотуємо плеєр
             m_player->setPosition(static_cast<qint64>(val));
 
-            return true; // Кажемо системі, що ми "з'їли" цю подію і далі її передавати не треба
+            // КЛЮЧОВИЙ МОМЕНТ:
+            // Ми повертаємо false, щоб Qt не думав, що ми "з'їли" подію.
+            // Це дозволить самому слайдеру отримати цей клік і почати перетягування (Drag).
+            return false;
         }
     }
 
-    // Для всіх інших подій і віджетів викликаємо стандартну поведінку
     return QMainWindow::eventFilter(obj, event);
 }
