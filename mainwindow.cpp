@@ -9,6 +9,7 @@
 #include <QPixmap>
 #include <QResizeEvent>
 #include <QIcon>
+#include <QEvent>
 
 // TagLib
 #include <taglib/fileref.h>
@@ -18,13 +19,14 @@
 #include <taglib/attachedpictureframe.h>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : FramelessWindow(parent)
     , ui(new Ui::MainWindow)
     , m_player(new QMediaPlayer(this))
     , m_audio(new QAudioOutput(this))
 {
     ui->setupUi(this);
 
+<<<<<<< HEAD
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
@@ -36,23 +38,38 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->PlayBtn->setIconSize(QSize(40, 40));
     updatePlayButtonIcon();
+=======
+    setWindowFlags(Qt::FramelessWindowHint);
+    setDragWidget(ui->upperwidget);
+
+    for (QWidget *child : findChildren<QWidget*>()) {
+        child->setMouseTracking(true);
+    }
+    setMinimumSize(600, 400);
+
+    connect(ui->closeBtn, &QPushButton::clicked, this, &MainWindow::close);
+    connect(ui->minimizeBtn, &QPushButton::clicked, this, &MainWindow::showMinimized);
+    connect(ui->maximizeBtn, &QPushButton::clicked, this, [this]() {
+        if (isMaximized()) showNormal();
+        else showMaximized();
+    });
+>>>>>>> ui
 
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.3f);
 
-    // Дефолтні значення
+    ui->HomeWidget->setAutoFillBackground(true);
+
     ui->trackNameLabel->setText("Немає треку");
     ui->artistLabel->setText("—");
     ui->albumArt->setText("🎵");
     ui->albumArt->setAlignment(Qt::AlignCenter);
     ui->albumArt->setFixedSize(60, 60);
 
-    // Like кнопка
     ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(20, 20));
     ui->LikeBtn->setCheckable(false);
 
-    // Play кнопка
     ui->PlayBtn->setIconSize(QSize(20, 20));
     ui->PlayBtn->setText("");
     updatePlayButtonIcon();
@@ -62,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
                 updatePlayButtonIcon();
             });
 
+<<<<<<< HEAD
     ui->PlayBtn->setIconSize(QSize(28, 28));
     ui->PlayBtn->setText("");
     updatePlayButtonIcon();
@@ -74,6 +92,8 @@ MainWindow::MainWindow(QWidget *parent)
         library.addTrack(t); // Це mainwindow.h
     }
     // Volume
+=======
+>>>>>>> ui
     ui->VolBtn->setIconSize(QSize(25, 25));
     ui->volumeSlider->setValue(30);
 
@@ -113,6 +133,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::WindowStateChange) {
+        if (isMaximized()) {
+            ui->maximizeBtn->setIcon(QIcon(":/icons/maximize.png"));
+        } else {
+            ui->maximizeBtn->setIcon(QIcon(":/icons/window.png"));
+        }
+        ui->maximizeBtn->setIconSize(QSize(16, 16));
+    }
+    QMainWindow::changeEvent(event);
+}
+
 void MainWindow::updatePlayButtonIcon()
 {
     if (m_player->playbackState() == QMediaPlayer::PlayingState) {
@@ -126,7 +159,6 @@ void MainWindow::updatePlayButtonIcon()
 void MainWindow::on_LikeBtn_clicked()
 {
     isLiked = !isLiked;
-
     if (isLiked) {
         ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
     } else {
@@ -138,11 +170,7 @@ void MainWindow::on_LikeBtn_clicked()
 void MainWindow::onDownloadBtnClicked()
 {
     QString path = QFileDialog::getOpenFileName(
-        this,
-        "Відкрити трек",
-        "",
-        "Аудіо (*.mp3 *.wav *.flac *.ogg)"
-        );
+        this, "Відкрити трек", "", "Аудіо (*.mp3 *.wav *.flac *.ogg)");
 
     if (path.isEmpty()) return;
 
@@ -192,12 +220,38 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     int w = centralWidget()->width();
     int h = centralWidget()->height();
-    int panelH = 80;
-    int leftW = 241;
 
-    ui->leftwidget->setFixedSize(leftW, h);
+    int leftW  = w * 0.22;
+    int btnW   = 45;
+    int panelH = h * 0.12;
+    int upperH = h * 0.10;
+
+    ui->upperwidget->setGeometry(0, 0, w, upperH);
+    ui->minimizeBtn->setGeometry(w - btnW * 3, 0, btnW, upperH);
+    ui->maximizeBtn->setGeometry(w - btnW * 2, 0, btnW, upperH);
+    ui->closeBtn->setGeometry(w - btnW, 0, btnW, upperH);
+
+    ui->LogoWidget->setGeometry(0, 0, leftW, upperH);
+    ui->leftwidget->setGeometry(0, upperH, leftW, h - upperH - panelH);
+    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH);
     ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
-    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH + 2);
+    ui->HomeWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
+
+    // Відносний шрифт для кнопок сайдбара
+    int fontSize = qMax(9, h / 55);
+    QFont btnFont("Bodoni MT", fontSize);
+    ui->HomeBtn->setFont(btnFont);
+    ui->LibraryBtn->setFont(btnFont);
+    ui->SearchBtn->setFont(btnFont);
+    ui->AddBtn->setFont(btnFont);
+    ui->FavoriteBtn->setFont(btnFont);
+
+    // Відносний шрифт для логотипу
+    int logoSize = qMax(12, h / 30);
+    QFont logoFont("Bauhaus 93", logoSize);
+    ui->TeamNameBtn->setFont(logoFont);
+    ui->TeamName1Btn->setFont(logoFont);
+
 }
 
 void MainWindow::updateNowPlaying(const QString &filePath)
@@ -206,12 +260,9 @@ void MainWindow::updateNowPlaying(const QString &filePath)
 
     if (!f.isNull() && f.tag()) {
         TagLib::Tag *tag = f.tag();
-
         QString title  = QString::fromStdString(tag->title().to8Bit(true));
         QString artist = QString::fromStdString(tag->artist().to8Bit(true));
-
-        ui->trackNameLabel->setText(title.isEmpty()
-                                        ? QFileInfo(filePath).baseName() : title);
+        ui->trackNameLabel->setText(title.isEmpty() ? QFileInfo(filePath).baseName() : title);
         ui->artistLabel->setText(artist.isEmpty() ? "Невідомий" : artist);
     } else {
         ui->trackNameLabel->setText(QFileInfo(filePath).baseName());
@@ -222,20 +273,14 @@ void MainWindow::updateNowPlaying(const QString &filePath)
     if (mp3.isValid() && mp3.ID3v2Tag()) {
         auto frames = mp3.ID3v2Tag()->frameListMap()["APIC"];
         if (!frames.isEmpty()) {
-            auto *pic = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(
-                frames.front()
-                );
+            auto *pic = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frames.front());
             if (pic) {
                 QPixmap pixmap;
                 pixmap.loadFromData(
                     reinterpret_cast<const uchar*>(pic->picture().data()),
-                    pic->picture().size()
-                    );
+                    pic->picture().size());
                 ui->albumArt->setPixmap(
-                    pixmap.scaled(60, 60,
-                                  Qt::KeepAspectRatio,
-                                  Qt::SmoothTransformation)
-                    );
+                    pixmap.scaled(60, 60, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 return;
             }
         }
