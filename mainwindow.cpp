@@ -1,7 +1,4 @@
 #include "mainwindow.h"
-#include "Track.h"
-#include "TrackStorage.h"
-#include "MusicLibrary.h"
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
@@ -26,26 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-<<<<<<< HEAD
-    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(28, 28));
-    ui->LikeBtn->setCheckable(false);
-
-    connect(m_player, &QMediaPlayer::playbackStateChanged, this, [this]()
-            {
-                updatePlayButtonIcon();
-            });
-
-    ui->PlayBtn->setIconSize(QSize(40, 40));
-    updatePlayButtonIcon();
-=======
     setWindowFlags(Qt::FramelessWindowHint);
     setDragWidget(ui->upperwidget);
 
     for (QWidget *child : findChildren<QWidget*>()) {
         child->setMouseTracking(true);
     }
-    setMinimumSize(600, 400);
+    setMinimumSize(400, 300);
 
     connect(ui->closeBtn, &QPushButton::clicked, this, &MainWindow::close);
     connect(ui->minimizeBtn, &QPushButton::clicked, this, &MainWindow::showMinimized);
@@ -53,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
         if (isMaximized()) showNormal();
         else showMaximized();
     });
->>>>>>> ui
 
     m_player->setAudioOutput(m_audio);
     m_audio->setVolume(0.3f);
@@ -79,21 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
                 updatePlayButtonIcon();
             });
 
-<<<<<<< HEAD
-    ui->PlayBtn->setIconSize(QSize(28, 28));
-    ui->PlayBtn->setText("");
-    updatePlayButtonIcon();
-
-    // Завантажуємо всі збережені треки з файлу tracks.json
-    QVector<Track> savedTracks = TrackStorage::load();
-
-    // Тепер треба сказати бібліотеці (MusicLibrary), що ці треки існують
-    for (const Track &t : savedTracks) {
-        library.addTrack(t); // Це mainwindow.h
-    }
-    // Volume
-=======
->>>>>>> ui
     ui->VolBtn->setIconSize(QSize(25, 25));
     ui->volumeSlider->setValue(30);
 
@@ -137,7 +105,7 @@ void MainWindow::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::WindowStateChange) {
         if (isMaximized()) {
-            ui->maximizeBtn->setIcon(QIcon(":/icons/maximize.png"));
+            ui->maximizeBtn->setIcon(QIcon(":/icons/restore.png"));
         } else {
             ui->maximizeBtn->setIcon(QIcon(":/icons/window.png"));
         }
@@ -178,31 +146,6 @@ void MainWindow::onDownloadBtnClicked()
     m_player->play();
     updatePlayButtonIcon();
     updateNowPlaying(path);
-
-    if (!path.isEmpty()) {
-        // 1. Читаємо теги з файлу
-        TagLib::FileRef f(path.toStdWString().c_str());
-
-        QString title = "Unknown Title";
-        QString artist = "Unknown Artist";
-        QString album = "Unknown Album";
-        int duration = 0;
-
-        if (!f.isNull() && f.tag()) {
-            TagLib::Tag *tag = f.tag();
-            title = QString::fromStdWString(tag->title().toWString());
-            artist = QString::fromStdWString(tag->artist().toWString());
-            album = QString::fromStdWString(tag->album().toWString());
-            duration = f.audioProperties() ? f.audioProperties()->length() : 0;
-        }
-
-        // 2. Створюємо об'єкт і додаємо в список
-        Track newTrack(title, artist, album, path, duration);
-        library.addTrack(newTrack);
-
-        // 3. САМЕ ЦЕЙ РЯДОК РОБИТЬ ЗАПИС У tracks.json
-        TrackStorage::save(library.getTracks());
-    }
 }
 
 void MainWindow::onPlayBtnClicked()
@@ -220,11 +163,10 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     int w = centralWidget()->width();
     int h = centralWidget()->height();
-
-    int leftW  = w * 0.22;
-    int btnW   = 45;
-    int panelH = h * 0.12;
-    int upperH = h * 0.10;
+    int leftW = w * 0.2;
+    int btnW = 45;
+    int panelH = h * 0.1;
+    int upperH = h * 0.1;
 
     ui->upperwidget->setGeometry(0, 0, w, upperH);
     ui->minimizeBtn->setGeometry(w - btnW * 3, 0, btnW, upperH);
@@ -233,25 +175,9 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
     ui->LogoWidget->setGeometry(0, 0, leftW, upperH);
     ui->leftwidget->setGeometry(0, upperH, leftW, h - upperH - panelH);
-    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH);
+    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH + 2);
     ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
     ui->HomeWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
-
-    // Відносний шрифт для кнопок сайдбара
-    int fontSize = qMax(9, h / 55);
-    QFont btnFont("Bodoni MT", fontSize);
-    ui->HomeBtn->setFont(btnFont);
-    ui->LibraryBtn->setFont(btnFont);
-    ui->SearchBtn->setFont(btnFont);
-    ui->AddBtn->setFont(btnFont);
-    ui->FavoriteBtn->setFont(btnFont);
-
-    // Відносний шрифт для логотипу
-    int logoSize = qMax(12, h / 30);
-    QFont logoFont("Bauhaus 93", logoSize);
-    ui->TeamNameBtn->setFont(logoFont);
-    ui->TeamName1Btn->setFont(logoFont);
-
 }
 
 void MainWindow::updateNowPlaying(const QString &filePath)

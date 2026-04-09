@@ -767,29 +767,6 @@ background-color: #FF4B5C;
     <property name="styleSheet">
      <string notr="true"/>
     </property>
-    <widget class="QPushButton" name="musicbtn">
-     <property name="geometry">
-      <rect>
-       <x>220</x>
-       <y>130</y>
-       <width>391</width>
-       <height>271</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="resources.qrc">
-       <normaloff>:/icons/music.png</normaloff>:/icons/music.png</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>300</width>
-       <height>300</height>
-      </size>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="upperwidget" native="true">
     <property name="geometry">
