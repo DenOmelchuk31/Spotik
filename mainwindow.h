@@ -17,9 +17,14 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void changeEvent(QEvent *event) override;
 private slots:
+    void on_randomBtn_clicked();
+    void onPositionChanged(qint64 position);
+    void onDurationChanged(qint64 duration);
+    void on_horizontalSlider_sliderMoved(int position);
     void onDownloadBtnClicked();
     void onPlayBtnClicked();
     void on_LikeBtn_clicked();
