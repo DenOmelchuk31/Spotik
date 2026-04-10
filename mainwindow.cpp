@@ -175,6 +175,33 @@ MainWindow::MainWindow(QWidget *parent)
                 TrackStorage::save(m_tracks);
                 m_favouritesWidget->loadTracks(m_tracks);
             });
+
+    connect(m_libraryWidget, &LibraryWidget::trackRemoved,
+            this, [this](const QString &filePath) {
+                // Знаходимо і видаляємо трек повністю
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        // Якщо видаляємо поточний трек — зупиняємо плеєр
+                        if (i == m_currentTrackIndex) {
+                            m_player->stop();
+                            m_currentTrackIndex = -1;
+                            ui->trackNameLabel->setText("Немає треку");
+                            ui->artistLabel->setText("—");
+                            ui->albumArt->setText("🎵");
+                            ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
+                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                        } else if (i < m_currentTrackIndex) {
+                            // Індекс поточного треку зсувається
+                            m_currentTrackIndex--;
+                        }
+                        m_tracks.removeAt(i);
+                        break;
+                    }
+                }
+                TrackStorage::save(m_tracks);
+                m_libraryWidget->loadTracks(m_tracks);
+                m_favouritesWidget->loadTracks(m_tracks);
+            });
 }
 
 MainWindow::~MainWindow()
@@ -229,10 +256,14 @@ void MainWindow::onDownloadBtnClicked()
 
     if (path.isEmpty()) return;
 
-    // Шукаємо чи цей файл вже є в m_tracks
+    // Нормалізуємо шлях: абсолютний, з правильними слешами, без зайвих крапок
+    path = QFileInfo(path).absoluteFilePath();
+
+    // Шукаємо чи цей файл вже є в m_tracks (порівняння без урахування регістру для Windows)
     m_currentTrackIndex = -1;
     for (int i = 0; i < m_tracks.size(); i++) {
-        if (m_tracks[i].getFilePath() == path) {
+        QString existingPath = QFileInfo(m_tracks[i].getFilePath()).absoluteFilePath();
+        if (existingPath.compare(path, Qt::CaseInsensitive) == 0) {
             m_currentTrackIndex = i;
             break;
         }
@@ -255,7 +286,7 @@ void MainWindow::onDownloadBtnClicked()
             dur = f.audioProperties()->lengthInSeconds();
         }
 
-        Track newTrack(title, artist, "", path, dur, false);
+        Track newTrack(title, artist, "", QFileInfo(path).absoluteFilePath(), dur, false);
         m_tracks.append(newTrack);
         m_currentTrackIndex = m_tracks.size() - 1;
 

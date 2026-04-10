@@ -20,10 +20,12 @@ public:
 
 signals:
     void trackSelected(const Track &track);
+    void trackRemoved(const QString &filePath); // сигнал видалення
 
 private:
     Ui::LibraryWidget *ui;
     QVector<Track> m_tracks;
+    void buildRow(int number, const Track &track);
 };
 
 #endif

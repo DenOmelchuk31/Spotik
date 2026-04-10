@@ -88,8 +88,7 @@ void Track::toggleLike()
 }
 bool Track::isValid() const {
     return !title.trimmed().isEmpty()
-    && !artist.trimmed().isEmpty()
-        && duration > 0;
+    && !filePath.trimmed().isEmpty();
 }
 
 QJsonObject Track::toJson() const {
