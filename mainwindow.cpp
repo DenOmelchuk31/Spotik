@@ -35,44 +35,27 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint);
     setDragWidget(ui->upperwidget);
 
+    // ======= ВИПРАВЛЕНО: stackedWidget створюється ОДИН РАЗ =======
     stackedWidget = new QStackedWidget(centralWidget());
     stackedWidget->setStyleSheet("background-color: transparent;");
 
-    homePage = new QWidget();
-    homePage->setStyleSheet("background-color: #FF4B5C;");
-
-    libraryPage = new QWidget();
-    libraryPage->setStyleSheet("background-color: #1A1A1A;");
-    // сюди потім додаси QListWidget з треками
-
-    favouritesPage = new QWidget();
-    favouritesPage->setStyleSheet("background-color: #1A1A1A;");
-
-    playlistPage = new QWidget();
-    playlistPage->setStyleSheet("background-color: #1A1A1A;");
-    stackedWidget = new QStackedWidget(centralWidget());
-
-    stackedWidget->addWidget(new HomeWidget());       // індекс 0
-    stackedWidget->addWidget(new LibraryWidget());    // індекс 1
-    stackedWidget->addWidget(new FavouritesWidget()); // індекс 2
-    stackedWidget->addWidget(new PlaylistWidget());   // індекс 3
-
-    stackedWidget->setCurrentIndex(0);
-
     m_tracks = TrackStorage::load();
 
-    m_libraryWidget = new LibraryWidget();
+    m_libraryWidget    = new LibraryWidget();
     m_favouritesWidget = new FavouritesWidget();
 
     m_libraryWidget->loadTracks(m_tracks);
     m_favouritesWidget->loadTracks(m_tracks);
 
-    stackedWidget->addWidget(new HomeWidget());       // 0
-    stackedWidget->addWidget(m_libraryWidget);         // 1
-    stackedWidget->addWidget(m_favouritesWidget);      // 2
-    stackedWidget->addWidget(new PlaylistWidget());
+    stackedWidget->addWidget(new HomeWidget());    // індекс 0
+    stackedWidget->addWidget(m_libraryWidget);     // індекс 1
+    stackedWidget->addWidget(m_favouritesWidget);  // індекс 2
+    stackedWidget->addWidget(new PlaylistWidget()); // індекс 3
 
-    // Підключаємо кнопки
+    stackedWidget->setCurrentIndex(0);
+    // =============================================================
+
+    // Підключаємо кнопки навігації
     connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
         stackedWidget->setCurrentIndex(0);
     });
@@ -173,6 +156,25 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Плеєр каже: "Ця пісня довга", слайдер підлаштовує свій максимум
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::onDurationChanged);
+
+    connect(m_favouritesWidget, &FavouritesWidget::trackRemoved,
+            this, [this](const QString &filePath) {
+                // Знаходимо трек і знімаємо лайк
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        m_tracks[i].setLiked(false);
+
+                        // Якщо це поточний трек — оновлюємо іконку лайку
+                        if (i == m_currentTrackIndex) {
+                            ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
+                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                        }
+                        break;
+                    }
+                }
+                TrackStorage::save(m_tracks);
+                m_favouritesWidget->loadTracks(m_tracks);
+            });
 }
 
 MainWindow::~MainWindow()
@@ -205,13 +207,19 @@ void MainWindow::updatePlayButtonIcon()
 
 void MainWindow::on_LikeBtn_clicked()
 {
-    isLiked = !isLiked;
-    if (isLiked) {
-        ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
-    } else {
-        ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-    }
+    if (m_currentTrackIndex < 0 || m_currentTrackIndex >= m_tracks.size())
+        return;
+
+    m_tracks[m_currentTrackIndex].toggleLike();
+    bool liked = m_tracks[m_currentTrackIndex].isLiked();
+
+    ui->LikeBtn->setIcon(QIcon(liked
+                                   ? ":/icons/LiketrackActive.png"
+                                   : ":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(20, 20));
+
+    TrackStorage::save(m_tracks);
+    m_favouritesWidget->loadTracks(m_tracks);
 }
 
 void MainWindow::onDownloadBtnClicked()
@@ -220,6 +228,48 @@ void MainWindow::onDownloadBtnClicked()
         this, "Відкрити трек", "", "Аудіо (*.mp3 *.wav *.flac *.ogg)");
 
     if (path.isEmpty()) return;
+
+    // Шукаємо чи цей файл вже є в m_tracks
+    m_currentTrackIndex = -1;
+    for (int i = 0; i < m_tracks.size(); i++) {
+        if (m_tracks[i].getFilePath() == path) {
+            m_currentTrackIndex = i;
+            break;
+        }
+    }
+
+    // Якщо треку ще немає — зчитуємо теги і додаємо
+    if (m_currentTrackIndex == -1) {
+        QString title  = QFileInfo(path).baseName();
+        QString artist = "Невідомий";
+        int     dur    = 0;
+
+        TagLib::FileRef f(path.toStdWString().c_str());
+        if (!f.isNull() && f.tag()) {
+            QString t = QString::fromStdString(f.tag()->title().to8Bit(true));
+            QString a = QString::fromStdString(f.tag()->artist().to8Bit(true));
+            if (!t.trimmed().isEmpty()) title  = t;
+            if (!a.trimmed().isEmpty()) artist = a;
+        }
+        if (!f.isNull() && f.audioProperties()) {
+            dur = f.audioProperties()->lengthInSeconds();
+        }
+
+        Track newTrack(title, artist, "", path, dur, false);
+        m_tracks.append(newTrack);
+        m_currentTrackIndex = m_tracks.size() - 1;
+
+        TrackStorage::save(m_tracks);
+        m_libraryWidget->loadTracks(m_tracks);
+        m_favouritesWidget->loadTracks(m_tracks);
+    }
+
+    // Показуємо правильну іконку лайку для цього треку
+    bool liked = m_tracks[m_currentTrackIndex].isLiked();
+    ui->LikeBtn->setIcon(QIcon(liked
+                                   ? ":/icons/LiketrackActive.png"
+                                   : ":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(20, 20));
 
     m_player->setSource(QUrl::fromLocalFile(path));
     m_player->play();

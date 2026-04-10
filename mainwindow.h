@@ -37,7 +37,7 @@ private:
     Ui::MainWindow *ui;
     QMediaPlayer   *m_player;
     QAudioOutput   *m_audio;
-    bool isLiked = false;
+    int m_currentTrackIndex = -1;
     QStackedWidget *stackedWidget;
     QWidget *homePage;
     QWidget *libraryPage;

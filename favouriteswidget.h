@@ -20,9 +20,11 @@ public:
 
 signals:
     void trackSelected(const Track &track);
+    void trackRemoved(const QString &filePath);  // новий сигнал — видалення
 
 private:
     Ui::FavouritesWidget *ui;
+    void buildRow(int number, const Track &track);
 };
 
 #endif
