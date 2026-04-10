@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "homewidget.h"
+#include "librarywidget.h"
+#include "favouriteswidget.h"
+#include "playlistwidget.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -25,6 +29,59 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowFlags(Qt::FramelessWindowHint);
     setDragWidget(ui->upperwidget);
+
+    stackedWidget = new QStackedWidget(centralWidget());
+    stackedWidget->setStyleSheet("background-color: transparent;");
+
+    homePage = new QWidget();
+    homePage->setStyleSheet("background-color: #FF4B5C;");
+
+    libraryPage = new QWidget();
+    libraryPage->setStyleSheet("background-color: #1A1A1A;");
+    // сюди потім додаси QListWidget з треками
+
+    favouritesPage = new QWidget();
+    favouritesPage->setStyleSheet("background-color: #1A1A1A;");
+
+    playlistPage = new QWidget();
+    playlistPage->setStyleSheet("background-color: #1A1A1A;");
+    stackedWidget = new QStackedWidget(centralWidget());
+
+    stackedWidget->addWidget(new HomeWidget());       // індекс 0
+    stackedWidget->addWidget(new LibraryWidget());    // індекс 1
+    stackedWidget->addWidget(new FavouritesWidget()); // індекс 2
+    stackedWidget->addWidget(new PlaylistWidget());   // індекс 3
+
+    stackedWidget->setCurrentIndex(0);
+
+    m_tracks = TrackStorage::load();
+
+    m_libraryWidget = new LibraryWidget();
+    m_favouritesWidget = new FavouritesWidget();
+
+    m_libraryWidget->loadTracks(m_tracks);
+    m_favouritesWidget->loadTracks(m_tracks);
+
+    stackedWidget->addWidget(new HomeWidget());       // 0
+    stackedWidget->addWidget(m_libraryWidget);         // 1
+    stackedWidget->addWidget(m_favouritesWidget);      // 2
+    stackedWidget->addWidget(new PlaylistWidget());
+
+    // Підключаємо кнопки
+    connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
+        stackedWidget->setCurrentIndex(0);
+    });
+    connect(ui->LibraryBtn, &QPushButton::clicked, this, [this]() {
+        stackedWidget->setCurrentIndex(1);
+    });
+    connect(ui->FavoriteBtn, &QPushButton::clicked, this, [this]() {
+        stackedWidget->setCurrentIndex(2);
+    });
+    connect(ui->AddBtn, &QPushButton::clicked, this, [this]() {
+        stackedWidget->setCurrentIndex(3);
+    });
+
+    ui->HomeWidget->hide(); // ховаємо старий HomeWidget
 
     for (QWidget *child : findChildren<QWidget*>()) {
         child->setMouseTracking(true);
@@ -177,7 +234,8 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     ui->leftwidget->setGeometry(0, upperH, leftW, h - upperH - panelH);
     ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH + 2);
     ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
-    ui->HomeWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
+    stackedWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
+    ui->HomeWidget->hide();
 }
 
 void MainWindow::updateNowPlaying(const QString &filePath)

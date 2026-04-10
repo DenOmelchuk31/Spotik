@@ -17,9 +17,13 @@ SOURCES += \
     Queue.cpp \
     Track.cpp \
     TrackStorage.cpp \
+    favouriteswidget.cpp \
     framelesswindow.cpp \
+    homewidget.cpp \
+    librarywidget.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    playlistwidget.cpp
 HEADERS += \
     MusicLibrary.h \
     Player.h \
@@ -27,11 +31,19 @@ HEADERS += \
     Queue.h \
     Track.h \
     TrackStorage.h \
+    favouriteswidget.h \
     framelesswindow.h \
-    mainwindow.h
+    homewidget.h \
+    librarywidget.h \
+    mainwindow.h \
+    playlistwidget.h
 
 FORMS += \
-    mainwindow.ui
+    favouriteswidget.ui \
+    homewidget.ui \
+    librarywidget.ui \
+    mainwindow.ui \
+    playlistwidget.ui
 
 win32 {
     DESTDIR = $$OUT_PWD
