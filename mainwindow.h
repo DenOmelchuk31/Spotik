@@ -1,6 +1,5 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-// #include <feature-track-storage>
 
 #include "MusicLibrary.h"
 #include <QMainWindow>
@@ -12,9 +11,11 @@
 #include "TrackStorage.h"
 #include "librarywidget.h"
 #include "favouriteswidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
 class MainWindow : public FramelessWindow
 {
     Q_OBJECT
@@ -44,7 +45,7 @@ private:
     QWidget *favouritesPage;
     QWidget *playlistPage;
     QVector<Track> m_tracks;
-    LibraryWidget *m_libraryWidget;
+    LibraryWidget    *m_libraryWidget;
     FavouritesWidget *m_favouritesWidget;
 
     Library library;

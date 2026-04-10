@@ -157,6 +157,88 @@ MainWindow::MainWindow(QWidget *parent)
     // Плеєр каже: "Ця пісня довга", слайдер підлаштовує свій максимум
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::onDurationChanged);
 
+    // ── trackPlayRequested з Library ──────────────────────────────────────
+    connect(m_libraryWidget, &LibraryWidget::trackPlayRequested,
+            this, [this](const QString &filePath) {
+                if (m_currentTrackIndex >= 0 &&
+                    m_tracks[m_currentTrackIndex].getFilePath() == filePath) {
+                    onPlayBtnClicked();
+                    return;
+                }
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        m_currentTrackIndex = i; break;
+                    }
+                }
+                bool liked = m_currentTrackIndex >= 0 && m_tracks[m_currentTrackIndex].isLiked();
+                ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
+                ui->LikeBtn->setIconSize(QSize(20, 20));
+                m_player->setSource(QUrl::fromLocalFile(filePath));
+                m_player->play();
+                updatePlayButtonIcon();
+                updateNowPlaying(filePath);
+                m_libraryWidget->setNowPlaying(filePath, true);
+                m_favouritesWidget->setNowPlaying(filePath, true);
+            });
+
+    // ── trackPlayRequested з Favourites ───────────────────────────────────
+    connect(m_favouritesWidget, &FavouritesWidget::trackPlayRequested,
+            this, [this](const QString &filePath) {
+                if (m_currentTrackIndex >= 0 &&
+                    m_tracks[m_currentTrackIndex].getFilePath() == filePath) {
+                    onPlayBtnClicked();
+                    return;
+                }
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        m_currentTrackIndex = i; break;
+                    }
+                }
+                bool liked = m_currentTrackIndex >= 0 && m_tracks[m_currentTrackIndex].isLiked();
+                ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
+                ui->LikeBtn->setIconSize(QSize(20, 20));
+                m_player->setSource(QUrl::fromLocalFile(filePath));
+                m_player->play();
+                updatePlayButtonIcon();
+                updateNowPlaying(filePath);
+                m_libraryWidget->setNowPlaying(filePath, true);
+                m_favouritesWidget->setNowPlaying(filePath, true);
+            });
+
+    // ── trackLikeToggled з Library ────────────────────────────────────────
+    connect(m_libraryWidget, &LibraryWidget::trackLikeToggled,
+            this, [this](const QString &filePath) {
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        m_tracks[i].toggleLike();
+                        bool liked = m_tracks[i].isLiked();
+                        m_libraryWidget->setTrackLiked(filePath, liked);
+                        if (i == m_currentTrackIndex) {
+                            ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
+                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                        }
+                        break;
+                    }
+                }
+                TrackStorage::save(m_tracks);
+                m_favouritesWidget->loadTracks(m_tracks);
+                if (m_currentTrackIndex >= 0) {
+                    m_favouritesWidget->setNowPlaying(
+                        m_tracks[m_currentTrackIndex].getFilePath(),
+                        m_player->playbackState() == QMediaPlayer::PlayingState);
+                }
+            });
+
+    // ── Синхронізація Play/Pause з плеєром ───────────────────────────────
+    connect(m_player, &QMediaPlayer::playbackStateChanged,
+            this, [this](QMediaPlayer::PlaybackState state) {
+                if (m_currentTrackIndex < 0 || m_currentTrackIndex >= m_tracks.size()) return;
+                const QString fp = m_tracks[m_currentTrackIndex].getFilePath();
+                bool playing = (state == QMediaPlayer::PlayingState);
+                m_libraryWidget->setNowPlaying(fp, playing);
+                m_favouritesWidget->setNowPlaying(fp, playing);
+            });
+
     connect(m_favouritesWidget, &FavouritesWidget::trackRemoved,
             this, [this](const QString &filePath) {
                 // Знаходимо трек і знімаємо лайк

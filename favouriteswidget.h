@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QVector>
+#include <QMap>
+#include <QPushButton>
 #include "Track.h"
 
 namespace Ui {
@@ -18,12 +20,23 @@ public:
     ~FavouritesWidget();
     void loadTracks(const QVector<Track> &tracks);
 
+    // Оновити стан Play/Pause без перебудови списку
+    void setNowPlaying(const QString &filePath, bool isPlaying);
+
 signals:
     void trackSelected(const Track &track);
-    void trackRemoved(const QString &filePath);  // новий сигнал — видалення
+    void trackPlayRequested(const QString &filePath);
+    void trackRemoved(const QString &filePath);
+    void trackLikeToggled(const QString &filePath);
 
 private:
     Ui::FavouritesWidget *ui;
+
+    QMap<QString, QPushButton*> m_playBtns;
+
+    QString m_nowPlayingPath;
+    bool    m_isPlaying = false;
+
     void buildRow(int number, const Track &track);
 };
 
