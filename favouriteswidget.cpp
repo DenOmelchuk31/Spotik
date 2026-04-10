@@ -80,8 +80,6 @@ void FavouritesWidget::buildRow(int number, const Track &track)
         "  background-color: transparent;"
         "  border: none;"
         "  border-radius: 14px;"
-        "  font-size: 13px;"
-        "  color: #E8335A;"
         "}"
         "QPushButton:hover {"
         "  background-color: #2a2a2a;"
@@ -89,10 +87,12 @@ void FavouritesWidget::buildRow(int number, const Track &track)
         );
 
     if (isThisPlaying && m_isPlaying) {
-        playBtn->setText("⏸");
+        playBtn->setIcon(QIcon(":/icons/pause.png"));
+        playBtn->setIconSize(QSize(20, 20));
         playBtn->setToolTip("Пауза");
     } else {
-        playBtn->setText("▶");
+        playBtn->setIcon(QIcon(":/icons/play.png"));
+        playBtn->setIconSize(QSize(20, 20));
         playBtn->setToolTip("Відтворити");
     }
 
@@ -126,13 +126,15 @@ void FavouritesWidget::buildRow(int number, const Track &track)
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacer->setStyleSheet("background: transparent;");
 
-    // --- Кнопка сердечко (лайк активний — завжди червоне в Favourites) ---
-    QPushButton *likeBtn = new QPushButton("♥");
+    // --- Кнопка сердечко (лайк активний — завжди замальоване в Favourites) ---
+    QPushButton *likeBtn = new QPushButton();
     likeBtn->setFixedSize(28, 28);
     likeBtn->setCursor(Qt::PointingHandCursor);
     likeBtn->setToolTip("Прибрати з улюблених");
+    likeBtn->setIcon(QIcon(":/icons/LiketrackActive.png"));
+    likeBtn->setIconSize(QSize(20, 20));
     likeBtn->setStyleSheet(
-        "QPushButton { background: transparent; border: none; font-size: 16px; color: #E8335A; border-radius: 14px; }"
+        "QPushButton { background: transparent; border: none; border-radius: 14px; }"
         "QPushButton:hover { background-color: #2a2a2a; }"
         );
 
@@ -141,23 +143,22 @@ void FavouritesWidget::buildRow(int number, const Track &track)
     });
 
     // --- Кнопка видалення ---
-    QPushButton *removeBtn = new QPushButton("✕");
+    QPushButton *removeBtn = new QPushButton();
     removeBtn->setFixedSize(28, 28);
     removeBtn->setCursor(Qt::PointingHandCursor);
     removeBtn->setToolTip("Видалити з бібліотеки");
-    removeBtn->setStyleSheet(
-        "QPushButton {"
-        "  background-color: transparent;"
-        "  color: #888888;"
-        "  border: none;"
-        "  font-size: 14px;"
-        "  border-radius: 14px;"
-        "}"
-        "QPushButton:hover {"
-        "  background-color: #ff4444;"
-        "  color: white;"
-        "}"
-        );
+    removeBtn->setIcon(QIcon(":/icons/delete.png"));
+    removeBtn->setIconSize(QSize(18, 18));
+    // removeBtn->setStyleSheet(
+    //     "QPushButton {"
+    //     "  background-color: transparent;"
+    //     "  border: none;"
+    //     "  border-radius: 14px;"
+    //     "}"
+    //     "QPushButton:hover {"
+    //     "  background-color: #ff4444;"
+    //     "}"
+    //     );
 
     connect(removeBtn, &QPushButton::clicked, this, [this, filePath]() {
         emit trackRemoved(filePath);
@@ -207,12 +208,14 @@ void FavouritesWidget::setNowPlaying(const QString &filePath, bool isPlaying)
     m_isPlaying      = isPlaying;
 
     if (!prevPath.isEmpty() && m_playBtns.contains(prevPath)) {
-        m_playBtns[prevPath]->setText("▶");
+        m_playBtns[prevPath]->setIcon(QIcon(":/icons/play.png"));
+        m_playBtns[prevPath]->setIconSize(QSize(20, 20));
         m_playBtns[prevPath]->setToolTip("Відтворити");
     }
 
     if (!filePath.isEmpty() && m_playBtns.contains(filePath)) {
-        m_playBtns[filePath]->setText(isPlaying ? "⏸" : "▶");
+        m_playBtns[filePath]->setIcon(QIcon(isPlaying ? ":/icons/pause.png" : ":/icons/play.png"));
+        m_playBtns[filePath]->setIconSize(QSize(20, 20));
         m_playBtns[filePath]->setToolTip(isPlaying ? "Пауза" : "Відтворити");
     }
 }

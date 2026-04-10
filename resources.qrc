@@ -19,5 +19,6 @@
         <file>icons/minimize.png</file>
         <file>icons/maximize.png</file>
         <file>icons/window.png</file>
+        <file>icons/delete.png</file>
     </qresource>
 </RCC>

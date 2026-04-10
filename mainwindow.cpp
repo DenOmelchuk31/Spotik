@@ -321,14 +321,23 @@ void MainWindow::on_LikeBtn_clicked()
 
     m_tracks[m_currentTrackIndex].toggleLike();
     bool liked = m_tracks[m_currentTrackIndex].isLiked();
+    const QString filePath = m_tracks[m_currentTrackIndex].getFilePath();
 
     ui->LikeBtn->setIcon(QIcon(liked
                                    ? ":/icons/LiketrackActive.png"
                                    : ":/icons/LiketrackNotactive.png"));
     ui->LikeBtn->setIconSize(QSize(20, 20));
 
+    // Оновлюємо іконку сердечка в рядку треку в Library
+    m_libraryWidget->setTrackLiked(filePath, liked);
+
     TrackStorage::save(m_tracks);
     m_favouritesWidget->loadTracks(m_tracks);
+    if (m_player->playbackState() == QMediaPlayer::PlayingState ||
+        m_player->playbackState() == QMediaPlayer::PausedState) {
+        m_favouritesWidget->setNowPlaying(filePath,
+                                          m_player->playbackState() == QMediaPlayer::PlayingState);
+    }
 }
 
 void MainWindow::onDownloadBtnClicked()
