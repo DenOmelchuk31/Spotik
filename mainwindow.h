@@ -6,7 +6,12 @@
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QStackedWidget>
 #include "framelesswindow.h"
+#include "Track.h"
+#include "TrackStorage.h"
+#include "librarywidget.h"
+#include "favouriteswidget.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -33,6 +38,14 @@ private:
     QMediaPlayer   *m_player;
     QAudioOutput   *m_audio;
     bool isLiked = false;
+    QStackedWidget *stackedWidget;
+    QWidget *homePage;
+    QWidget *libraryPage;
+    QWidget *favouritesPage;
+    QWidget *playlistPage;
+    QVector<Track> m_tracks;
+    LibraryWidget *m_libraryWidget;
+    FavouritesWidget *m_favouritesWidget;
 
     Library library;
     void updateNowPlaying(const QString &filePath);
