@@ -3,7 +3,12 @@
  <class>FavouritesWidget</class>
  <widget class="QWidget" name="FavouritesWidget">
   <property name="geometry">
-   <rect><x>0</x><y>0</y><width>526</width><height>478</height></rect>
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>526</width>
+    <height>478</height>
+   </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -16,10 +21,10 @@
    <item>
     <widget class="QListWidget" name="favouritesList">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
+      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
      </property>
     </widget>
    </item>

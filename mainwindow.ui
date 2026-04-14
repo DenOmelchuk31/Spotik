@@ -704,6 +704,12 @@ background-color: #FF4B5C;
       <height>91</height>
      </rect>
     </property>
+    <property name="minimumSize">
+     <size>
+      <width>241</width>
+      <height>0</height>
+     </size>
+    </property>
     <widget class="QPushButton" name="TeamNameBtn">
      <property name="geometry">
       <rect>
@@ -754,19 +760,6 @@ background-color: #FF4B5C;
       </size>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="HomeWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>80</y>
-      <width>881</width>
-      <height>531</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
    </widget>
    <widget class="QWidget" name="upperwidget" native="true">
     <property name="geometry">
@@ -852,7 +845,21 @@ background-color: #FF4B5C;
     <property name="currentIndex">
      <number>0</number>
     </property>
-    <widget class="QWidget" name="page_3"/>
+    <widget class="QWidget" name="page_3">
+     <widget class="QWidget" name="HomeWidget" native="true">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>100</y>
+        <width>881</width>
+        <height>531</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+     </widget>
+    </widget>
     <widget class="QWidget" name="page_5">
      <widget class="QTextBrowser" name="textBrowser">
       <property name="geometry">
@@ -882,7 +889,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
    <zorder>playpanel</zorder>
    <zorder>nowPlayingWidget</zorder>
    <zorder>LogoWidget</zorder>
-   <zorder>HomeWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

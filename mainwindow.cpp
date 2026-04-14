@@ -419,14 +419,19 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     int panelH = h * 0.1;
     int upperH = h * 0.1;
 
-    ui->upperwidget->setGeometry(0, 0, w, upperH);
-    ui->minimizeBtn->setGeometry(w - btnW * 3, 0, btnW, upperH);
-    ui->maximizeBtn->setGeometry(w - btnW * 2, 0, btnW, upperH);
-    ui->closeBtn->setGeometry(w - btnW, 0, btnW, upperH);
+    // upperwidget — тільки права частина (без лівої колонки)
+    ui->upperwidget->setGeometry(leftW, 0, w - leftW, upperH);
+    ui->minimizeBtn->setGeometry(w - leftW - btnW * 3, 0, btnW, upperH);
+    ui->maximizeBtn->setGeometry(w - leftW - btnW * 2, 0, btnW, upperH);
+    ui->closeBtn->setGeometry(w - leftW - btnW, 0, btnW, upperH);
 
+    // LogoWidget — ліва частина верху (з border-right і border-bottom)
     ui->LogoWidget->setGeometry(0, 0, leftW, upperH);
+
+    // leftwidget — під LogoWidget, та сама ширина
     ui->leftwidget->setGeometry(0, upperH, leftW, h - upperH - panelH);
-    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH + 2);
+
+    ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH);
     ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
     stackedWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
     ui->HomeWidget->hide();

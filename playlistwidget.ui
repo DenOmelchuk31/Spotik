@@ -36,6 +36,9 @@
     </widget>
    </item>
   </layout>
+  <zorder>playlistNameEdit</zorder>
+  <zorder>createBtn</zorder>
+  <zorder>playlistTitle</zorder>
  </widget>
  <resources/>
  <connections/>
