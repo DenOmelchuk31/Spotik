@@ -34,6 +34,8 @@ private slots:
     void onDownloadBtnClicked();
     void onPlayBtnClicked();
     void on_LikeBtn_clicked();
+    void onNextBtnClicked();
+    void onPrevBtnClicked();
 private:
     Ui::MainWindow *ui;
     QMediaPlayer   *m_player;
@@ -51,5 +53,6 @@ private:
     Library library;
     void updateNowPlaying(const QString &filePath);
     void updatePlayButtonIcon();
+    void playTrackAtIndex(int index);
 };
 #endif

@@ -141,6 +141,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->PlayBtn, &QPushButton::clicked,
             this, &MainWindow::onPlayBtnClicked);
 
+    connect(ui->NextBtn, &QPushButton::clicked,
+            this, &MainWindow::onNextBtnClicked);
+
+    connect(ui->PrevBtn, &QPushButton::clicked,
+            this, &MainWindow::onPrevBtnClicked);
+
     // Коли натиснули Home
     connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
         ui->pageManager->setCurrentIndex(0);
@@ -500,6 +506,51 @@ void MainWindow::on_randomBtn_clicked()
         m_player->play();
         updatePlayButtonIcon(); // Переконуємося, що на кнопці Play правильна іконка
     }
+}
+
+void MainWindow::playTrackAtIndex(int index)
+{
+    if (index < 0 || index >= m_tracks.size()) return;
+
+    m_currentTrackIndex = index;
+    const QString filePath = m_tracks[m_currentTrackIndex].getFilePath();
+
+    bool liked = m_tracks[m_currentTrackIndex].isLiked();
+    ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(20, 20));
+
+    m_player->setSource(QUrl::fromLocalFile(filePath));
+    m_player->play();
+    updatePlayButtonIcon();
+    updateNowPlaying(filePath);
+    m_libraryWidget->setNowPlaying(filePath, true);
+    m_favouritesWidget->setNowPlaying(filePath, true);
+}
+
+void MainWindow::onNextBtnClicked()
+{
+    if (m_tracks.isEmpty()) return;
+
+    int nextIndex;
+    if (m_currentTrackIndex < 0) {
+        nextIndex = 0;
+    } else {
+        nextIndex = (m_currentTrackIndex + 1) % m_tracks.size();
+    }
+    playTrackAtIndex(nextIndex);
+}
+
+void MainWindow::onPrevBtnClicked()
+{
+    if (m_tracks.isEmpty()) return;
+
+    int prevIndex;
+    if (m_currentTrackIndex <= 0) {
+        prevIndex = m_tracks.size() - 1;
+    } else {
+        prevIndex = m_currentTrackIndex - 1;
+    }
+    playTrackAtIndex(prevIndex);
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
