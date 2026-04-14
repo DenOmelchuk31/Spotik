@@ -426,6 +426,12 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     int panelH = h * 0.1;
     int upperH = h * 0.1;
 
+    int sbW = 380;
+    ui->searchBar->setGeometry(
+        (ui->upperwidget->width() - sbW) / 2,
+        18, sbW, 44
+        );
+
     // upperwidget — тільки права частина (без лівої колонки)
     ui->upperwidget->setGeometry(leftW, 0, w - leftW, upperH);
     ui->minimizeBtn->setGeometry(w - leftW - btnW * 3, 0, btnW, upperH);
