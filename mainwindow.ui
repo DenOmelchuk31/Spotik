@@ -853,6 +853,9 @@ QLineEdit#searchBar {
      <property name="contextMenuPolicy">
       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
      </property>
+     <property name="placeholderText">
+       <string>Enter the track name</string>
+     </property>
      <property name="text">
       <string/>
      </property>

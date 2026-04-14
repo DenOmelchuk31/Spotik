@@ -11,6 +11,7 @@
 #include "TrackStorage.h"
 #include "librarywidget.h"
 #include "favouriteswidget.h"
+#include <QListWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -36,6 +37,7 @@ private slots:
     void on_LikeBtn_clicked();
     void onNextBtnClicked();
     void onPrevBtnClicked();
+    void onSearchTextChanged(const QString &text);
 private:
     Ui::MainWindow *ui;
     QMediaPlayer   *m_player;
@@ -49,6 +51,7 @@ private:
     QVector<Track> m_tracks;
     LibraryWidget    *m_libraryWidget;
     FavouritesWidget *m_favouritesWidget;
+    QListWidget      *m_searchPopup;
 
     Library library;
     void updateNowPlaying(const QString &filePath);

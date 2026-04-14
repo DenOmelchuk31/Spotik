@@ -147,6 +147,48 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->PrevBtn, &QPushButton::clicked,
             this, &MainWindow::onPrevBtnClicked);
 
+    // ── Пошук ────────────────────────────────────────────────────────────
+    m_searchPopup = new QListWidget(centralWidget());
+    m_searchPopup->setStyleSheet(
+        "QListWidget {"
+        "  background-color: #1E1E1E;"
+        "  border: 1px solid #FF4B5C;"
+        "  border-radius: 8px;"
+        "  color: white;"
+        "  font-size: 13px;"
+        "  outline: none;"
+        "}"
+        "QListWidget::item {"
+        "  padding: 10px 14px;"
+        "  border-bottom: 1px solid #2A2A2A;"
+        "}"
+        "QListWidget::item:hover {"
+        "  background-color: #2A2A2A;"
+        "}"
+        "QListWidget::item:selected {"
+        "  background-color: #FF4B5C;"
+        "  color: white;"
+        "}"
+        );
+    m_searchPopup->hide();
+    m_searchPopup->raise();
+
+    connect(ui->searchBar, &QLineEdit::textChanged,
+            this, &MainWindow::onSearchTextChanged);
+
+    connect(m_searchPopup, &QListWidget::itemClicked,
+            this, [this](QListWidgetItem *item) {
+                const QString filePath = item->data(Qt::UserRole).toString();
+                for (int i = 0; i < m_tracks.size(); i++) {
+                    if (m_tracks[i].getFilePath() == filePath) {
+                        playTrackAtIndex(i);
+                        break;
+                    }
+                }
+                ui->searchBar->clear();
+                m_searchPopup->hide();
+            });
+
     // Коли натиснули Home
     connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
         ui->pageManager->setCurrentIndex(0);
@@ -426,11 +468,23 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     int panelH = h * 0.1;
     int upperH = h * 0.1;
 
-    int sbW = 380;
+    int sbW = w * 0.35;  // ширина 35% від вікна
+    int sbX = leftW + (w - leftW - sbW) / 2;  // центр правої зони
+    int sbY = upperH * 0.2;  // вертикально по центру верхньої панелі
+
     ui->searchBar->setGeometry(
-        (ui->upperwidget->width() - sbW) / 2,
-        18, sbW, 44
+        sbX - leftW,  // відносно upperwidget
+        sbY, sbW, upperH * 0.6
         );
+
+    // Оновлюємо позицію попапу пошуку
+    // Оновлюємо позицію попапу пошуку
+    if (m_searchPopup) {
+        if (!m_searchPopup->isHidden()) {
+            int popupH = qMin(m_searchPopup->count() * 46, 280);
+            m_searchPopup->setGeometry(sbX, upperH, sbW, popupH);
+        }
+    }
 
     // upperwidget — тільки права частина (без лівої колонки)
     ui->upperwidget->setGeometry(leftW, 0, w - leftW, upperH);
@@ -557,6 +611,47 @@ void MainWindow::onPrevBtnClicked()
         prevIndex = m_currentTrackIndex - 1;
     }
     playTrackAtIndex(prevIndex);
+}
+
+void MainWindow::onSearchTextChanged(const QString &text)
+{
+    m_searchPopup->clear();
+
+    if (text.trimmed().isEmpty()) {
+        m_searchPopup->hide();
+        return;
+    }
+
+    for (const Track &track : m_tracks) {
+        bool titleMatch  = track.getTitle().contains(text, Qt::CaseInsensitive);
+        bool artistMatch = track.getArtist().contains(text, Qt::CaseInsensitive);
+        if (titleMatch || artistMatch) {
+            QString label = track.getTitle() + "  —  " + track.getArtist();
+            QListWidgetItem *item = new QListWidgetItem(label);
+            item->setData(Qt::UserRole, track.getFilePath());
+            m_searchPopup->addItem(item);
+        }
+    }
+
+    if (m_searchPopup->count() == 0) {
+        QListWidgetItem *item = new QListWidgetItem("Нічого не знайдено");
+        item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
+        item->setForeground(QColor("#888888"));
+        m_searchPopup->addItem(item);
+    }
+
+    // Позиціонуємо під searchBar
+    int w      = centralWidget()->width();
+    int h      = centralWidget()->height();
+    int leftW  = w * 0.2;
+    int upperH = h * 0.1;
+    int sbW    = w * 0.35;
+    int sbX    = leftW + (w - leftW - sbW) / 2;
+    int popupH = qMin(m_searchPopup->count() * 46, 280);
+
+    m_searchPopup->setGeometry(sbX, upperH, sbW, popupH);
+    m_searchPopup->raise();
+    m_searchPopup->show();
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
