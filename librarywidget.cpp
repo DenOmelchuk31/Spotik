@@ -154,16 +154,16 @@ void LibraryWidget::buildRow(int number, const Track &track)
     removeBtn->setToolTip("Видалити з бібліотеки");
     removeBtn->setIcon(QIcon(":/icons/delete.png"));
     removeBtn->setIconSize(QSize(18, 18));
-    // removeBtn->setStyleSheet(
-    //     "QPushButton {"
-    //     "  background-color: transparent;"
-    //     "  border: none;"
-    //     "  border-radius: 14px;"
-    //     "}"
-    //     "QPushButton:hover {"
-    //     "  background-color: #ff4444;"
-    //     "}"
-    //     );
+    removeBtn->setStyleSheet(
+        "QPushButton {"
+        "  background-color: transparent;"
+        "  border: none;"
+        "  border-radius: 14px;"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: transparent;"
+        "}"
+        );
 
     connect(removeBtn, &QPushButton::clicked, this, [this, filePath]() {
         emit trackRemoved(filePath);
@@ -231,7 +231,7 @@ void LibraryWidget::setTrackLiked(const QString &filePath, bool liked)
 {
     if (!m_likeBtns.contains(filePath)) return;
     QPushButton *btn = m_likeBtns[filePath];
-    btn->setIcon(QIcon(liked ? ":/icons/LiketrackNotactive.png" : ":/icons/LiketrackActive.png"));
+    btn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
     btn->setIconSize(QSize(20, 20));
     btn->setToolTip(liked ? "Прибрати з улюблених" : "Додати до улюблених");
     btn->setStyleSheet(

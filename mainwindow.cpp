@@ -251,6 +251,7 @@ MainWindow::MainWindow(QWidget *parent)
                             ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
                             ui->LikeBtn->setIconSize(QSize(20, 20));
                         }
+                        m_libraryWidget->setTrackLiked(filePath, false);
                         break;
                     }
                 }

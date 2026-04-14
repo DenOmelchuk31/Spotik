@@ -149,16 +149,16 @@ void FavouritesWidget::buildRow(int number, const Track &track)
     removeBtn->setToolTip("Видалити з бібліотеки");
     removeBtn->setIcon(QIcon(":/icons/delete.png"));
     removeBtn->setIconSize(QSize(18, 18));
-    // removeBtn->setStyleSheet(
-    //     "QPushButton {"
-    //     "  background-color: transparent;"
-    //     "  border: none;"
-    //     "  border-radius: 14px;"
-    //     "}"
-    //     "QPushButton:hover {"
-    //     "  background-color: #ff4444;"
-    //     "}"
-    //     );
+    removeBtn->setStyleSheet(
+        "QPushButton {"
+        "  background-color: transparent;"
+        "  border: none;"
+        "  border-radius: 14px;"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: transparent;"
+        "}"
+        );
 
     connect(removeBtn, &QPushButton::clicked, this, [this, filePath]() {
         emit trackRemoved(filePath);
