@@ -22,8 +22,7 @@ SOURCES += \
     homewidget.cpp \
     librarywidget.cpp \
     main.cpp \
-    mainwindow.cpp \
-    playlistwidget.cpp
+    mainwindow.cpp
 HEADERS += \
     MusicLibrary.h \
     Player.h \
@@ -35,15 +34,13 @@ HEADERS += \
     framelesswindow.h \
     homewidget.h \
     librarywidget.h \
-    mainwindow.h \
-    playlistwidget.h
+    mainwindow.h
 
 FORMS += \
     favouriteswidget.ui \
     homewidget.ui \
     librarywidget.ui \
     mainwindow.ui \
-    playlistwidget.ui
 
 win32 {
     DESTDIR = $$OUT_PWD

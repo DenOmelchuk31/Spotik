@@ -2,6 +2,10 @@
 #define HOMEWIDGET_H
 
 #include <QWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QPixmap>
+#include <QPushButton>
 
 namespace Ui {
 class HomeWidget;

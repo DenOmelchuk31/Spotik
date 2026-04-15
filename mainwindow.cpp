@@ -3,7 +3,6 @@
 #include "homewidget.h"
 #include "librarywidget.h"
 #include "favouriteswidget.h"
-#include "playlistwidget.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -50,8 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(new HomeWidget());    // індекс 0
     stackedWidget->addWidget(m_libraryWidget);     // індекс 1
     stackedWidget->addWidget(m_favouritesWidget);  // індекс 2
-    stackedWidget->addWidget(new PlaylistWidget()); // індекс 3
-
     stackedWidget->setCurrentIndex(0);
     // =============================================================
 
@@ -65,10 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->FavoriteBtn, &QPushButton::clicked, this, [this]() {
         stackedWidget->setCurrentIndex(2);
     });
-    connect(ui->AddBtn, &QPushButton::clicked, this, [this]() {
-        stackedWidget->setCurrentIndex(3);
-    });
-
     ui->HomeWidget->hide(); // ховаємо старий HomeWidget
 
     for (QWidget *child : findChildren<QWidget*>()) {
@@ -188,17 +181,6 @@ MainWindow::MainWindow(QWidget *parent)
                 ui->searchBar->clear();
                 m_searchPopup->hide();
             });
-
-    // Коли натиснули Home
-    connect(ui->HomeBtn, &QPushButton::clicked, this, [this]() {
-        ui->pageManager->setCurrentIndex(0);
-    });
-
-    // Коли натиснули Library
-    connect(ui->LibraryBtn, &QPushButton::clicked, this, [this]() {
-        ui->pageManager->setCurrentIndex(1);
-    });
-
     // Плеєр каже: "Я просунувся по треку", слайдер наздоганяє
     connect(m_player, &QMediaPlayer::positionChanged, this, &MainWindow::onPositionChanged);
 
@@ -477,6 +459,15 @@ void MainWindow::resizeEvent(QResizeEvent *event)
         sbY, sbW, upperH * 0.6
         );
 
+    // Іконка пошуку — зліва від searchBar (всередині нього)
+    int iconSize = upperH * 0.6;
+    ui->SearchBtn->setGeometry(
+        sbX - leftW + 6,   // невеликий відступ від лівого краю searchBar
+        sbY,
+        iconSize, iconSize
+        );
+    ui->SearchBtn->raise();
+
     // Оновлюємо позицію попапу пошуку
     // Оновлюємо позицію попапу пошуку
     if (m_searchPopup) {
@@ -500,8 +491,19 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
     ui->nowPlayingWidget->setGeometry(0, h - panelH, leftW, panelH);
     ui->playpanel->setGeometry(leftW, h - panelH, w - leftW, panelH);
-    stackedWidget->setGeometry(leftW, upperH, w - leftW, h - panelH - upperH);
+    int swW = w - leftW;
+    int swH = h - panelH - upperH;
+    stackedWidget->setGeometry(leftW, upperH, swW, swH);
+    if (auto *hw = stackedWidget->widget(0))
+        hw->setGeometry(0, 0, swW, swH);
     ui->HomeWidget->hide();
+
+    stackedWidget->raise(); // прибери якщо є
+    ui->upperwidget->raise();
+    ui->LogoWidget->raise();
+    ui->leftwidget->raise();
+    ui->playpanel->raise();
+    ui->nowPlayingWidget->raise();
 }
 
 void MainWindow::updateNowPlaying(const QString &filePath)
