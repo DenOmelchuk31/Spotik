@@ -53,9 +53,9 @@ private:
     FavouritesWidget *m_favouritesWidget;
     QListWidget      *m_searchPopup;
 
-    Library library;
     void updateNowPlaying(const QString &filePath);
     void updatePlayButtonIcon();
+    void updateLikeButton(bool liked); // — усуває дублювання
     void playTrackAtIndex(int index);
 };
 #endif

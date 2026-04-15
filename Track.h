@@ -11,24 +11,28 @@ private:
     QString artist;
     QString album;
     QString filePath;
-    int duration;
-    bool liked;
+    int     duration;
+    bool    liked;
 
 public:
     Track();
-    Track(const QString& title, const QString& artist, const QString& album, const QString& filePath, int duration, bool liked = false);
+    Track(const QString& title, const QString& artist, const QString& album,
+          const QString& filePath, int duration, bool liked = false);
 
-    QJsonObject toJson() const;
+    // Серіалізація
+    QJsonObject  toJson() const;
     static Track fromJson(const QJsonObject& obj);
 
-    QString getTitle() const;
-    QString getArtist() const;
-    QString getAlbum() const;
+    // Геттери
+    QString getTitle()    const;
+    QString getArtist()   const;
+    QString getAlbum()    const;
     QString getFilePath() const;
-    int getDuration() const;
-    bool isLiked() const;
-    bool isValid() const;
+    int     getDuration() const;
+    bool    isLiked()     const;
+    bool    isValid()     const;
 
+    // Сеттери
     void setTitle(const QString& title);
     void setArtist(const QString& artist);
     void setAlbum(const QString& album);

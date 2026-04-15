@@ -2,39 +2,48 @@
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QStandardPaths>
 #include <QDir>
 
-void TrackStorage::save(const QVector<Track>& tracks) {
+static QString storagePath()
+{
+    QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dir);
+    return dir + "/tracks.json";
+}
+
+void TrackStorage::save(const QVector<Track>& tracks)
+{
     QJsonArray array;
     for (const auto& track : tracks) {
         array.append(track.toJson());
     }
 
     QJsonDocument doc(array);
-
-    // Створюємо папку data, якщо її немає
-    if (!QDir("data").exists()) {
-        QDir().mkdir("data");
-    }
-
-    QFile file("data/tracks.json");
+    QFile file(storagePath());
     if (file.open(QIODevice::WriteOnly)) {
         file.write(doc.toJson());
-        file.close();
     }
 }
 
-QVector<Track> TrackStorage::load() {
+QVector<Track> TrackStorage::load()
+{
     QVector<Track> tracks;
-    QFile file("data/tracks.json");
-    if (!file.open(QIODevice::ReadOnly)) return tracks;
+    QFile file(storagePath());
+    if (!file.open(QIODevice::ReadOnly))
+        return tracks;
 
     QByteArray data = file.readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    QJsonArray array = doc.array();
+    if (!doc.isArray())
+        return tracks;   // захист від пошкодженого JSON
 
-    for (const auto& item : array) {
-        tracks.append(Track::fromJson(item.toObject()));
+    for (const auto& item : doc.array()) {
+        if (item.isObject()) {
+            Track t = Track::fromJson(item.toObject());
+            if (t.isValid())             // не завантажуємо сміття
+                tracks.append(t);
+        }
     }
     return tracks;
 }

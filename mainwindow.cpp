@@ -12,6 +12,7 @@
 #include <QMouseEvent>
 #include <QStyle>
 #include <QEvent>
+#include <QRandomGenerator>
 
 // TagLib
 #include <taglib/fileref.h>
@@ -27,8 +28,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_audio(new QAudioOutput(this))
 {
     ui->setupUi(this);
-    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(28, 28));
     ui->LikeBtn->setCheckable(false);
     ui->horizontalSlider->installEventFilter(this);
     setWindowFlags(Qt::FramelessWindowHint);
@@ -87,8 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->albumArt->setAlignment(Qt::AlignCenter);
     ui->albumArt->setFixedSize(60, 60);
 
-    ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(20, 20));
+    updateLikeButton(false);
     ui->LikeBtn->setCheckable(false);
 
     ui->PlayBtn->setIconSize(QSize(20, 20));
@@ -187,53 +185,24 @@ MainWindow::MainWindow(QWidget *parent)
     // Плеєр каже: "Ця пісня довга", слайдер підлаштовує свій максимум
     connect(m_player, &QMediaPlayer::durationChanged, this, &MainWindow::onDurationChanged);
 
-    // ── trackPlayRequested з Library ──────────────────────────────────────
-    connect(m_libraryWidget, &LibraryWidget::trackPlayRequested,
-            this, [this](const QString &filePath) {
-                if (m_currentTrackIndex >= 0 &&
-                    m_tracks[m_currentTrackIndex].getFilePath() == filePath) {
-                    onPlayBtnClicked();
-                    return;
-                }
-                for (int i = 0; i < m_tracks.size(); i++) {
-                    if (m_tracks[i].getFilePath() == filePath) {
-                        m_currentTrackIndex = i; break;
-                    }
-                }
-                bool liked = m_currentTrackIndex >= 0 && m_tracks[m_currentTrackIndex].isLiked();
-                ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
-                ui->LikeBtn->setIconSize(QSize(20, 20));
-                m_player->setSource(QUrl::fromLocalFile(filePath));
-                m_player->play();
-                updatePlayButtonIcon();
-                updateNowPlaying(filePath);
-                m_libraryWidget->setNowPlaying(filePath, true);
-                m_favouritesWidget->setNowPlaying(filePath, true);
-            });
-
-    // ── trackPlayRequested з Favourites ───────────────────────────────────
-    connect(m_favouritesWidget, &FavouritesWidget::trackPlayRequested,
-            this, [this](const QString &filePath) {
-                if (m_currentTrackIndex >= 0 &&
-                    m_tracks[m_currentTrackIndex].getFilePath() == filePath) {
-                    onPlayBtnClicked();
-                    return;
-                }
-                for (int i = 0; i < m_tracks.size(); i++) {
-                    if (m_tracks[i].getFilePath() == filePath) {
-                        m_currentTrackIndex = i; break;
-                    }
-                }
-                bool liked = m_currentTrackIndex >= 0 && m_tracks[m_currentTrackIndex].isLiked();
-                ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
-                ui->LikeBtn->setIconSize(QSize(20, 20));
-                m_player->setSource(QUrl::fromLocalFile(filePath));
-                m_player->play();
-                updatePlayButtonIcon();
-                updateNowPlaying(filePath);
-                m_libraryWidget->setNowPlaying(filePath, true);
-                m_favouritesWidget->setNowPlaying(filePath, true);
-            });
+    // ── trackPlayRequested — спільна лямбда для Library і Favourites ────────
+    auto onPlayRequested = [this](const QString &filePath) {
+        // Якщо це вже поточний трек — просто toggle play/pause
+        if (m_currentTrackIndex >= 0 &&
+            m_tracks[m_currentTrackIndex].getFilePath() == filePath) {
+            onPlayBtnClicked();
+            return;
+        }
+        // Інакше знаходимо індекс і відтворюємо
+        for (int i = 0; i < m_tracks.size(); i++) {
+            if (m_tracks[i].getFilePath() == filePath) {
+                playTrackAtIndex(i);
+                return;
+            }
+        }
+    };
+    connect(m_libraryWidget,    &LibraryWidget::trackPlayRequested,    this, onPlayRequested);
+    connect(m_favouritesWidget, &FavouritesWidget::trackPlayRequested, this, onPlayRequested);
 
     // ── trackLikeToggled з Library ────────────────────────────────────────
     connect(m_libraryWidget, &LibraryWidget::trackLikeToggled,
@@ -244,8 +213,7 @@ MainWindow::MainWindow(QWidget *parent)
                         bool liked = m_tracks[i].isLiked();
                         m_libraryWidget->setTrackLiked(filePath, liked);
                         if (i == m_currentTrackIndex) {
-                            ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
-                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                            updateLikeButton(liked);
                         }
                         break;
                     }
@@ -278,8 +246,7 @@ MainWindow::MainWindow(QWidget *parent)
 
                         // Якщо це поточний трек — оновлюємо іконку лайку
                         if (i == m_currentTrackIndex) {
-                            ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                            updateLikeButton(false);
                         }
                         m_libraryWidget->setTrackLiked(filePath, false);
                         break;
@@ -301,8 +268,7 @@ MainWindow::MainWindow(QWidget *parent)
                             ui->trackNameLabel->setText("Немає треку");
                             ui->artistLabel->setText("—");
                             ui->albumArt->setText("🎵");
-                            ui->LikeBtn->setIcon(QIcon(":/icons/LiketrackNotactive.png"));
-                            ui->LikeBtn->setIconSize(QSize(20, 20));
+                            updateLikeButton(false);
                         } else if (i < m_currentTrackIndex) {
                             // Індекс поточного треку зсувається
                             m_currentTrackIndex--;
@@ -335,6 +301,14 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
 }
 
+void MainWindow::updateLikeButton(bool liked)
+{
+    ui->LikeBtn->setIcon(QIcon(liked
+                                   ? ":/icons/LiketrackActive.png"
+                                   : ":/icons/LiketrackNotactive.png"));
+    ui->LikeBtn->setIconSize(QSize(20, 20));
+}
+
 void MainWindow::updatePlayButtonIcon()
 {
     if (m_player->playbackState() == QMediaPlayer::PlayingState) {
@@ -354,10 +328,7 @@ void MainWindow::on_LikeBtn_clicked()
     bool liked = m_tracks[m_currentTrackIndex].isLiked();
     const QString filePath = m_tracks[m_currentTrackIndex].getFilePath();
 
-    ui->LikeBtn->setIcon(QIcon(liked
-                                   ? ":/icons/LiketrackActive.png"
-                                   : ":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(20, 20));
+    updateLikeButton(liked);
 
     // Оновлюємо іконку сердечка в рядку треку в Library
     m_libraryWidget->setTrackLiked(filePath, liked);
@@ -419,10 +390,7 @@ void MainWindow::onDownloadBtnClicked()
 
     // Показуємо правильну іконку лайку для цього треку
     bool liked = m_tracks[m_currentTrackIndex].isLiked();
-    ui->LikeBtn->setIcon(QIcon(liked
-                                   ? ":/icons/LiketrackActive.png"
-                                   : ":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(20, 20));
+    updateLikeButton(liked);
 
     m_player->setSource(QUrl::fromLocalFile(path));
     m_player->play();
@@ -443,38 +411,34 @@ void MainWindow::onPlayBtnClicked()
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
-    int w = centralWidget()->width();
-    int h = centralWidget()->height();
-    int leftW = w * 0.2;
-    int btnW = 45;
-    int panelH = h * 0.1;
-    int upperH = h * 0.1;
+    const int w = centralWidget()->width();
+    const int h = centralWidget()->height();
+    const int leftW  = static_cast<int>(w * 0.2);
+    const int btnW   = 45;
+    const int panelH = static_cast<int>(h * 0.1);
+    const int upperH = static_cast<int>(h * 0.1);
 
-    int sbW = w * 0.35;  // ширина 35% від вікна
-    int sbX = leftW + (w - leftW - sbW) / 2;  // центр правої зони
-    int sbY = upperH * 0.2;  // вертикально по центру верхньої панелі
+    const int sbW = static_cast<int>(w * 0.35);
+    const int sbX = leftW + (w - leftW - sbW) / 2;
+    const int sbY = static_cast<int>(upperH * 0.2);
 
     ui->searchBar->setGeometry(
-        sbX - leftW,  // відносно upperwidget
-        sbY, sbW, upperH * 0.6
+        sbX - leftW,
+        sbY, sbW, static_cast<int>(upperH * 0.6)
         );
 
-    // Іконка пошуку — зліва від searchBar (всередині нього)
-    int iconSize = upperH * 0.6;
+    const int iconSize = static_cast<int>(upperH * 0.6);
     ui->SearchBtn->setGeometry(
-        sbX - leftW + 6,   // невеликий відступ від лівого краю searchBar
+        sbX - leftW + 6,
         sbY,
         iconSize, iconSize
         );
     ui->SearchBtn->raise();
 
     // Оновлюємо позицію попапу пошуку
-    // Оновлюємо позицію попапу пошуку
-    if (m_searchPopup) {
-        if (!m_searchPopup->isHidden()) {
-            int popupH = qMin(m_searchPopup->count() * 46, 280);
-            m_searchPopup->setGeometry(sbX, upperH, sbW, popupH);
-        }
+    if (m_searchPopup && !m_searchPopup->isHidden()) {
+        int popupH = qMin(m_searchPopup->count() * 46, 280);
+        m_searchPopup->setGeometry(sbX, upperH, sbW, popupH);
     }
 
     // upperwidget — тільки права частина (без лівої колонки)
@@ -560,14 +524,22 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position) {
 
 void MainWindow::on_randomBtn_clicked()
 {
-    // Скидаємо позицію треку на самий початок (0 мілісекунд)
-    m_player->setPosition(0);
-
-    // Якщо трек був на паузі, він почне грати з початку
-    if (m_player->playbackState() != QMediaPlayer::PlayingState) {
-        m_player->play();
-        updatePlayButtonIcon(); // Переконуємося, що на кнопці Play правильна іконка
+    if (m_tracks.size() < 2) {
+        // Якщо трек лише один — перемотуємо на початок
+        m_player->setPosition(0);
+        if (m_player->playbackState() != QMediaPlayer::PlayingState) {
+            m_player->play();
+            updatePlayButtonIcon();
+        }
+        return;
     }
+
+    // Вибираємо випадковий індекс (не той самий що зараз грає)
+    int idx = QRandomGenerator::global()->bounded(m_tracks.size());
+    if (idx == m_currentTrackIndex)
+        idx = (idx + 1) % m_tracks.size();
+
+    playTrackAtIndex(idx);
 }
 
 void MainWindow::playTrackAtIndex(int index)
@@ -578,8 +550,7 @@ void MainWindow::playTrackAtIndex(int index)
     const QString filePath = m_tracks[m_currentTrackIndex].getFilePath();
 
     bool liked = m_tracks[m_currentTrackIndex].isLiked();
-    ui->LikeBtn->setIcon(QIcon(liked ? ":/icons/LiketrackActive.png" : ":/icons/LiketrackNotactive.png"));
-    ui->LikeBtn->setIconSize(QSize(20, 20));
+    updateLikeButton(liked);
 
     m_player->setSource(QUrl::fromLocalFile(filePath));
     m_player->play();
@@ -593,6 +564,18 @@ void MainWindow::onNextBtnClicked()
 {
     if (m_tracks.isEmpty()) return;
 
+    // Якщо зараз відкрита вкладка Favourites — ходимо тільки по лайкнутих
+    if (stackedWidget->currentIndex() == 2) {
+        QVector<int> liked;
+        for (int i = 0; i < m_tracks.size(); i++)
+            if (m_tracks[i].isLiked()) liked.append(i);
+        if (liked.isEmpty()) return;
+        int pos = liked.indexOf(m_currentTrackIndex);
+        int next = liked[(pos + 1) % liked.size()];
+        playTrackAtIndex(next);
+        return;
+    }
+
     int nextIndex;
     if (m_currentTrackIndex < 0) {
         nextIndex = 0;
@@ -605,6 +588,24 @@ void MainWindow::onNextBtnClicked()
 void MainWindow::onPrevBtnClicked()
 {
     if (m_tracks.isEmpty()) return;
+
+    // Якщо трек грає більше 3 секунд — перемотуємо на початок
+    if (m_currentTrackIndex >= 0 && m_player->position() > 3000) {
+        m_player->setPosition(0);
+        return;
+    }
+
+    // Якщо зараз відкрита вкладка Favourites — ходимо тільки по лайкнутих
+    if (stackedWidget->currentIndex() == 2) {
+        QVector<int> liked;
+        for (int i = 0; i < m_tracks.size(); i++)
+            if (m_tracks[i].isLiked()) liked.append(i);
+        if (liked.isEmpty()) return;
+        int pos = liked.indexOf(m_currentTrackIndex);
+        int prev = liked[(pos - 1 + liked.size()) % liked.size()];
+        playTrackAtIndex(prev);
+        return;
+    }
 
     int prevIndex;
     if (m_currentTrackIndex <= 0) {
@@ -642,14 +643,14 @@ void MainWindow::onSearchTextChanged(const QString &text)
         m_searchPopup->addItem(item);
     }
 
-    // Позиціонуємо під searchBar
-    int w      = centralWidget()->width();
-    int h      = centralWidget()->height();
-    int leftW  = w * 0.2;
-    int upperH = h * 0.1;
-    int sbW    = w * 0.35;
-    int sbX    = leftW + (w - leftW - sbW) / 2;
-    int popupH = qMin(m_searchPopup->count() * 46, 280);
+    // Позиціонуємо під searchBar (ті самі пропорції що й у resizeEvent)
+    const int w      = centralWidget()->width();
+    const int h      = centralWidget()->height();
+    const int leftW  = static_cast<int>(w * 0.2);
+    const int upperH = static_cast<int>(h * 0.1);
+    const int sbW    = static_cast<int>(w * 0.35);
+    const int sbX    = leftW + (w - leftW - sbW) / 2;
+    const int popupH = qMin(m_searchPopup->count() * 46, 280);
 
     m_searchPopup->setGeometry(sbX, upperH, sbW, popupH);
     m_searchPopup->raise();
@@ -674,8 +675,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             // 2. Перемотуємо плеєр
             m_player->setPosition(static_cast<qint64>(val));
 
-            // КЛЮЧОВИЙ МОМЕНТ:
-            // Ми повертаємо false, щоб Qt не думав, що ми "з'їли" подію.
             // Це дозволить самому слайдеру отримати цей клік і почати перетягування (Drag).
             return false;
         }

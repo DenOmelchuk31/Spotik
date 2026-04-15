@@ -4,39 +4,26 @@
 #include <QString>
 #include <QVector>
 #include "Track.h"
-#include "Playlist.h"
 
 class Library
 {
 private:
     QVector<Track> tracks;
-    QVector<Playlist> playlists;
 
 public:
-    Library();
+    Library() = default;
 
-    QVector<Track> getTracks() const;
-    QVector<Playlist> getPlaylists() const;
+    const QVector<Track>& getTracks() const { return tracks; }
 
     void addTrack(const Track& track);
     bool removeTrackByTitle(const QString& title);
-    int findTrackByTitle(const QString& title) const;
+    int  findTrackByTitle(const QString& title) const;
     bool hasTrack(const QString& title) const;
 
-    void addPlaylist(const Playlist& playlist);
-    bool removePlaylistByName(const QString& name);
-    int findPlaylistByName(const QString& name) const;
-    bool hasPlaylist(const QString& name) const;
+    bool isEmpty()       const { return tracks.isEmpty(); }
+    int  getTrackCount() const { return tracks.size();    }
 
-    bool isTracksEmpty() const;
-    bool isPlaylistsEmpty() const;
-    bool isEmpty() const;
-
-    int getTrackCount() const;
-    int getPlaylistCount() const;
-
-    void clearTracks();
-    void clearPlaylists();
-    void clearAll();
+    void clearTracks() { tracks.clear(); }
 };
+
 #endif // LIBRARY_H
